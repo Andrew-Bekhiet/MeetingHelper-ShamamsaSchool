@@ -375,7 +375,6 @@ class _PersonInfoState extends State<PersonInfo> {
                         )
                       : const Text('غير موجود'),
                 ),
-                _PersonServices(person: person),
                 ListTile(
                   title: const Text('النوع:'),
                   subtitle: Text(person.gender ? 'ذكر' : 'أنثى'),
@@ -405,8 +404,8 @@ class _PersonInfoState extends State<PersonInfo> {
                 FutureBuilder<Tuple2<String, String>>(
                   future: () async {
                     final studyYear = await (person.studyYear ??
-                            (await person.classId?.get())?.data()?['StudyYear']
-                                as JsonRef?)
+                            (await person.classId?.get())
+                                ?.data()?['StudyYearFrom'] as JsonRef?)
                         ?.get();
                     final isCollegeYear =
                         studyYear?.data()?['IsCollegeYear']?.toString() ==
@@ -733,105 +732,5 @@ class _PersonInfoState extends State<PersonInfo> {
         await c.insert();
       }
     }
-  }
-}
-
-class _PersonServices extends StatelessWidget {
-  const _PersonServices({
-    required this.person,
-  });
-
-  final Person person;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      title: const Text('الخدمات المشارك بها'),
-      subtitle: person.services.isNotEmpty
-          ? FutureBuilder<List<String>>(
-              future: Future.wait(
-                person.services.take(2).map(
-                      (s) async =>
-                          Service.fromDoc(
-                            await s.get(),
-                          )?.name ??
-                          '',
-                    ),
-              ),
-              builder: (context, servicesSnapshot) {
-                if (!servicesSnapshot.hasData) {
-                  return const LinearProgressIndicator();
-                }
-
-                if (person.services.length > 2) {
-                  return Text(
-                    servicesSnapshot.requireData.take(2).join(' و') +
-                        'و ' +
-                        (person.services.length - 2).toString() +
-                        ' أخرين',
-                  );
-                }
-
-                return Text(servicesSnapshot.requireData.join(' و'));
-              },
-            )
-          : const Text('لا يوجد خدمات'),
-      trailing: person.services.isNotEmpty
-          ? IconButton(
-              icon: const Icon(Icons.info),
-              tooltip: 'اظهار الخدمات',
-              onPressed: () async {
-                await showDialog(
-                  context: context,
-                  builder: (context) => Dialog(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        FutureBuilder<List<Service>>(
-                          future: () async {
-                            return (await Future.wait(
-                              person.services.map(
-                                (s) async => Service.fromDoc(
-                                  await s.get(),
-                                ),
-                              ),
-                            ))
-                                .whereType<Service>()
-                                .toList();
-                          }(),
-                          builder: (context, data) {
-                            if (data.hasError) return ErrorWidget(data.error!);
-                            if (!data.hasData) {
-                              return const Center(
-                                child: CircularProgressIndicator(),
-                              );
-                            }
-
-                            return ListView.builder(
-                              padding: const EdgeInsetsDirectional.all(8),
-                              shrinkWrap: true,
-                              itemCount: person.services.length,
-                              itemBuilder: (context, i) {
-                                return Container(
-                                  margin:
-                                      const EdgeInsets.symmetric(vertical: 5),
-                                  child: ViewableObjectWidget<Service>(
-                                    data.requireData[i],
-                                    showSubtitle: false,
-                                    wrapInCard: false,
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            )
-          : null,
-    );
   }
 }

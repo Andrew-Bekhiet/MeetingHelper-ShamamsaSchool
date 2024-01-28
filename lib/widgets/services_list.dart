@@ -99,28 +99,22 @@ class _ServicesListState<T extends DataObject> extends State<ServicesList<T>>
               );
             }
 
-            final service =
-                groupedStudyYears.keys.elementAt(section).truncate() !=
-                        groupedStudyYears.keys.elementAt(section)
-                    ? 'خدمات '
-                    : '';
-
             if (groupedStudyYears.keys.elementAt(section).truncate() < 1) {
-              return ListTile(title: Text(service + 'KG'));
+              return const ListTile(title: Text('KG'));
             } else if (groupedStudyYears.keys.elementAt(section).truncate() <
                 2) {
-              return ListTile(title: Text(service + 'ابتدائي'));
+              return const ListTile(title: Text('ابتدائي'));
             } else if (groupedStudyYears.keys.elementAt(section).truncate() <
                 3) {
-              return ListTile(title: Text(service + 'اعدادي'));
+              return const ListTile(title: Text('اعدادي'));
             } else if (groupedStudyYears.keys.elementAt(section).truncate() <
                 4) {
-              return ListTile(title: Text(service + 'ثانوي'));
+              return const ListTile(title: Text('ثانوي'));
             } else if (groupedStudyYears.keys.elementAt(section).truncate() <
                 5) {
-              return ListTile(title: Text(service + 'جامعة'));
+              return const ListTile(title: Text('جامعة'));
             } else {
-              return const ListTile(title: Text('خدمات أخرى'));
+              return const ListTile(title: Text('مراحل أخرى'));
             }
           },
           itemBuilder: (context, index) {

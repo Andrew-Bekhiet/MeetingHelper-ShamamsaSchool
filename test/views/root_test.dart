@@ -103,7 +103,7 @@ void main() {
           expect(
             find.descendant(
               of: find.byType(TabBar),
-              matching: find.text('الخدمات'),
+              matching: find.text('المراحل'),
             ),
             findsOneWidget,
           );
@@ -136,7 +136,7 @@ void main() {
           await tester.tap(
             find.descendant(
               of: find.byType(TabBar),
-              matching: find.text('الخدمات'),
+              matching: find.text('المراحل'),
             ),
           );
           await tester.pumpAndSettle();

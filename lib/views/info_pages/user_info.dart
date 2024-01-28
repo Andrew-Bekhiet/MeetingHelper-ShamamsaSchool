@@ -285,7 +285,7 @@ class _UserInfoState extends State<UserInfo> {
                           Text(
                             'يستطيع ' +
                                 user.name +
-                                ' رؤية ${user.permissions.write ? 'وتعديل ' : ''}الخدمات التالية:',
+                                ' رؤية ${user.permissions.write ? 'وتعديل ' : ''}المراحل التالية:',
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                           Expanded(

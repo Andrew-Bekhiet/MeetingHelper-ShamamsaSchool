@@ -180,10 +180,6 @@ class _TrashDayScreenState extends State<TrashDayScreen>
           controller: _tabController,
           tabs: const [
             Tab(
-              text: 'الخدمات',
-              icon: Icon(Icons.miscellaneous_services),
-            ),
-            Tab(
               text: 'الفصول',
               icon: Icon(Icons.group),
             ),
@@ -272,7 +268,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
             )
           else
             const Center(
-              child: Text('يلزم صلاحية رؤية جميع البيانات لاسترجاع الخدمات'),
+              child: Text('يلزم صلاحية رؤية جميع البيانات لاسترجاع المراحل'),
             ),
           DataObjectListView<void, Class>(
             autoDisposeController: true,

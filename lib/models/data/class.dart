@@ -15,7 +15,8 @@ part 'class.g.dart';
 @immutable
 @CopyWith(copyWithNull: true)
 class Class extends DataObject implements PhotoObjectBase {
-  final JsonRef? studyYear;
+  final JsonRef? studyYearFrom;
+  final JsonRef? studyYearTo;
   //Male=true, Female=false, Both=null
   final bool? gender;
 
@@ -32,8 +33,9 @@ class Class extends DataObject implements PhotoObjectBase {
     required JsonRef ref,
     required String name,
     List<String>? allowedUsers,
-    this.studyYear,
-    this.gender = true,
+    this.studyYearFrom,
+    this.studyYearTo,
+    this.gender,
     this.hasPhoto = false,
     this.color,
     LastEdit? lastEdit,
@@ -50,7 +52,8 @@ class Class extends DataObject implements PhotoObjectBase {
 
   Class.fromJson(super.data, super.ref)
       : gender = data['Gender'],
-        studyYear = data['StudyYear'],
+        studyYearFrom = data['StudyYearFrom'],
+        studyYearTo = data['StudyYearTo'],
         hasPhoto = data['HasPhoto'] ?? false,
         allowedUsers =
             UnmodifiableListView(data['Allowed']?.cast<String>() ?? []),
@@ -93,7 +96,8 @@ class Class extends DataObject implements PhotoObjectBase {
 
   Json formattedProps() => {
         'Name': name,
-        'StudyYear': getStudyYearName(),
+        'StudyYearFrom': getStudyYearFromName(),
+        'StudyYearTo': getStudyYearToName(),
         'Gender': getGenderName(),
         'Allowed': allowedUsers.isEmpty
             ? 'لا يوجد مستخدمين محددين'
@@ -115,7 +119,8 @@ class Class extends DataObject implements PhotoObjectBase {
   @override
   Json toJson() => {
         'Name': name,
-        'StudyYear': studyYear,
+        'StudyYearFrom': studyYearFrom,
+        'StudyYearTo': studyYearTo,
         'Gender': gender,
         'HasPhoto': hasPhoto,
         'Color': color?.value,
@@ -151,8 +156,43 @@ class Class extends DataObject implements PhotoObjectBase {
     return formattedProps()[key];
   }
 
-  Future<String> getStudyYearName() async {
-    return (await studyYear?.get())?.data()?['Name'] ?? '';
+  Future<String> getStudyYearFromName() async {
+    return (await studyYearFrom?.get())?.data()?['Name'] ?? '';
+  }
+
+  Future<String> getStudyYearToName() async {
+    return (await studyYearTo?.get())?.data()?['Name'] ?? '';
+  }
+
+  int compareTo(Class other, Map<JsonRef, StudyYear> studyYears) {
+    final int compareResult = _compareStudyYears(other, studyYears);
+
+    if (compareResult != 0) return compareResult;
+
+    return gender.compareTo(other.gender);
+  }
+
+  int _compareStudyYears(Class other, Map<JsonRef, StudyYear> studyYears) {
+    if (studyYearFrom == null && other.studyYearFrom == null) {
+      if (studyYearTo == null && other.studyYearTo == null) {
+        return 0;
+      } else if (studyYearTo == null) {
+        return 1;
+      } else if (other.studyYearTo == null) {
+        return -1;
+      }
+      return studyYears[studyYearTo]!
+          .grade
+          .compareTo(studyYears[other.studyYearTo!]!.grade);
+    } else if (studyYearFrom == null) {
+      return 1;
+    } else if (other.studyYearFrom == null) {
+      return -1;
+    }
+
+    return studyYears[studyYearFrom]!
+        .grade
+        .compareTo(studyYears[other.studyYearFrom!]!.grade);
   }
 
   static Stream<List<Person>> getClassMembers(
@@ -179,8 +219,17 @@ class Class extends DataObject implements PhotoObjectBase {
           label: 'الاسم',
           defaultValue: '',
         ),
-        'StudyYear': PropertyMetadata<JsonRef>(
-          name: 'StudyYear',
+        'StudyYearFrom': PropertyMetadata<JsonRef>(
+          name: 'StudyYearFrom',
+          label: 'سنة الدراسة',
+          defaultValue: null,
+          query: GetIt.I<DatabaseRepository>()
+              .collection('StudyYears')
+              .orderBy('Grade'),
+          collectionName: 'StudyYears',
+        ),
+        'StudyYearTo': PropertyMetadata<JsonRef>(
+          name: 'StudyYearTo',
           label: 'سنة الدراسة',
           defaultValue: null,
           query: GetIt.I<DatabaseRepository>()

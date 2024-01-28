@@ -152,13 +152,13 @@ class Persons extends TableBase<Person> {
             (user) => user.permissions.superAccess
                 ? repository
                     .collection('Classes')
-                    .orderBy('StudyYear')
+                    .orderBy('StudyYearFrom')
                     .orderBy('Gender')
                     .snapshots()
                 : repository
                     .collection('Classes')
                     .where('Allowed', arrayContains: user.uid)
-                    .orderBy('StudyYear')
+                    .orderBy('StudyYearFrom')
                     .orderBy('Gender')
                     .snapshots(),
           ),
@@ -175,14 +175,7 @@ class Persons extends TableBase<Person> {
 
         mergeSort<Class>(
           classes,
-          compare: (c, c2) {
-            if (c.studyYear == c2.studyYear) {
-              return c.gender.compareTo(c2.gender);
-            }
-            return studyYears[c.studyYear]!
-                .grade
-                .compareTo(studyYears[c2.studyYear]!.grade);
-          },
+          compare: (c, c2) => c.compareTo(c2, studyYears),
         );
 
         return {

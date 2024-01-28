@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -14,7 +15,6 @@ import 'package:meetinghelper/controllers.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/utils/globals.dart';
-import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/views.dart';
 import 'package:meetinghelper/widgets.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -34,6 +34,7 @@ class EditPerson extends StatefulWidget {
 class _EditPersonState extends State<EditPerson> {
   String? changedImage;
   bool deletePhoto = false;
+  Class? selectedClass;
 
   final GlobalKey<FormState> _form = GlobalKey<FormState>();
 
@@ -326,60 +327,12 @@ class _EditPersonState extends State<EditPerson> {
                     },
                     validator: (_) => null,
                   ),
-                  if (person.classId == null)
-                    FutureBuilder<List<StudyYear>>(
-                      key: ValueKey(person.studyYear),
-                      future: StudyYear.getAll().first,
-                      builder: (conext, data) {
-                        if (data.hasData) {
-                          return Container(
-                            margin: const EdgeInsets.symmetric(vertical: 8),
-                            child: DropdownButtonFormField<JsonRef?>(
-                              validator: (v) {
-                                if (person.classId == null && v == null) {
-                                  return 'هذا الحقل مطلوب';
-                                } else {
-                                  return null;
-                                }
-                              },
-                              value: person.studyYear,
-                              items: data.data!
-                                  .map(
-                                    (item) => DropdownMenuItem(
-                                      value: item.ref,
-                                      child: Text(item.name),
-                                    ),
-                                  )
-                                  .toList()
-                                ..insert(
-                                  0,
-                                  const DropdownMenuItem(
-                                    child: Text(''),
-                                  ),
-                                ),
-                              onChanged: (value) {
-                                setState(() {});
-                                person = person.copyWith.studyYear(value);
-                                FocusScope.of(context).nextFocus();
-                              },
-                              decoration: const InputDecoration(
-                                labelText: 'السنة الدراسية',
-                              ),
-                            ),
-                          );
-                        } else {
-                          return const SizedBox(width: 1, height: 1);
-                        }
-                      },
-                    ),
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     child: TappableFormField<JsonRef?>(
                       initialValue: person.classId,
                       onTap: _selectClass,
-                      validator: (c) => person.services.isEmpty && c == null
-                          ? 'برجاء ادخال الفصل او خدمة واحدة على الأقل'
-                          : null,
+                      validator: (c) => c == null ? 'برجاء ادخال الفصل' : null,
                       decoration: (context, state) => InputDecoration(
                         labelText: 'داخل فصل',
                         errorText: state.errorText,
@@ -415,48 +368,80 @@ class _EditPersonState extends State<EditPerson> {
                       },
                     ),
                   ),
-                  TappableFormField<List<JsonRef>>(
-                    labelText: 'الخدمات المشارك بها',
-                    initialValue: person.services,
-                    onTap: _selectServices,
-                    validator: (s) =>
-                        (s?.isEmpty ?? true) && person.classId == null
-                            ? 'برجاء ادخال الفصل او خدمة واحدة على الأقل'
-                            : null,
-                    builder: (context, state) {
-                      return state.value != null && state.value!.isNotEmpty
-                          ? FutureBuilder<List<String>>(
-                              future: Future.wait(
-                                state.value!.take(2).map(
-                                      (s) async =>
-                                          Service.fromDoc(
-                                            await s.get(),
-                                          )?.name ??
-                                          '',
-                                    ),
+                  FutureBuilder<List<StudyYear>>(
+                    key: ValueKey((selectedClass, person.studyYear)),
+                    future: StudyYear.getAll().first,
+                    builder: (conext, data) {
+                      if (data.hasData) {
+                        final (from, to) = (
+                          data.requireData.firstWhereOrNull(
+                            (s) => s.id == selectedClass?.studyYearFrom?.id,
+                          ),
+                          data.requireData.firstWhereOrNull(
+                            (s) => s.id == selectedClass?.studyYearTo?.id,
+                          )
+                        );
+
+                        return Container(
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          child: DropdownButtonFormField<JsonRef?>(
+                            validator: (v) {
+                              if (v == null) {
+                                return 'هذا الحقل مطلوب';
+                              }
+
+                              final grade = data.requireData
+                                  .firstWhereOrNull((s) => s.id == v.id)
+                                  ?.grade;
+
+                              if (grade == null) {
+                                return 'حدث خطأ، لا يمكن تحديد السنة الدراسية';
+                              }
+
+                              if (from == null || to == null) {
+                                return 'حدث خطأ، لا يمكن تحديد الفصل';
+                              }
+
+                              if (grade < from.grade || grade > to.grade) {
+                                return 'السنة الدراسية لا تنتمي للفصل المحدد';
+                              }
+                              return null;
+                            },
+                            value: person.studyYear,
+                            items: data.data!
+                                .where(
+                                  (sy) =>
+                                      from != null &&
+                                      to != null &&
+                                      sy.grade >= from.grade &&
+                                      sy.grade <= to.grade,
+                                )
+                                .map(
+                                  (item) => DropdownMenuItem(
+                                    value: item.ref,
+                                    child: Text(item.name),
+                                  ),
+                                )
+                                .toList()
+                              ..insert(
+                                0,
+                                const DropdownMenuItem(
+                                  child: Text(''),
+                                ),
                               ),
-                              builder: (context, servicesSnapshot) {
-                                if (!servicesSnapshot.hasData) {
-                                  return const LinearProgressIndicator();
-                                }
-
-                                if (state.value!.length > 2) {
-                                  return Text(
-                                    servicesSnapshot.requireData
-                                            .take(2)
-                                            .join(' و') +
-                                        'و ' +
-                                        (state.value!.length - 2).toString() +
-                                        ' أخرين',
-                                  );
-                                }
-
-                                return Text(
-                                  servicesSnapshot.requireData.join(' و'),
-                                );
-                              },
-                            )
-                          : const Text('لا يوجد خدمات');
+                            onChanged: (value) {
+                              setState(() {});
+                              person = person.copyWith.studyYear(value);
+                              FocusScope.of(context).nextFocus();
+                            },
+                            decoration: const InputDecoration(
+                              labelText: 'السنة الدراسية',
+                            ),
+                          ),
+                        );
+                      } else {
+                        return const SizedBox(width: 1, height: 1);
+                      }
                     },
                   ),
                   FutureBuilder<bool>(
@@ -567,7 +552,7 @@ class _EditPersonState extends State<EditPerson> {
                         isExpanded: true,
                         items: [
                           'ابصالتس',
-                          'اغأناغنوستيس',
+                          'أناغنوستيس',
                           'أيبودياكون',
                           'دياكون',
                           'أرشيدياكون',
@@ -625,7 +610,7 @@ class _EditPersonState extends State<EditPerson> {
                                       ?.get()
                                       // ignore: invalid_return_type_for_catch_error
                                       .catchError((_) => null))
-                                  ?.data()?['StudyYear'] as JsonRef?)
+                                  ?.data()?['StudyYearFrom'] as JsonRef?)
                           ?.get();
 
                       return studyYear?.data()?['IsCollegeYear']?.toString() ==
@@ -1101,6 +1086,16 @@ class _EditPersonState extends State<EditPerson> {
   void initState() {
     super.initState();
     person = (widget.person ?? Person.empty()).copyWith();
+    _initSelectedClass();
+  }
+
+  Future<void> _initSelectedClass() async {
+    final classDoc = await person.classId?.get();
+
+    if (classDoc == null || !classDoc.exists) return;
+
+    selectedClass = Class.fromDoc(classDoc);
+    setState(() {});
   }
 
   Future<void> _selectColor() async {
@@ -1215,8 +1210,6 @@ class _EditPersonState extends State<EditPerson> {
 
           person = person.copyWith
               .gender(class$.gender ?? person.gender)
-              .copyWith
-              .studyYear(class$.studyYear)
               .copyWith
               .isShammas(
                 (class$.gender ?? person.gender) ? person.isShammas : false,
@@ -1363,10 +1356,9 @@ class _EditPersonState extends State<EditPerson> {
                     onTap: (class$) {
                       navigator.currentState!.pop();
                       setState(() {
+                        selectedClass = class$;
                         person = person.copyWith
                             .classId(class$.ref)
-                            .copyWith
-                            .studyYear(class$.studyYear)
                             .copyWith
                             .gender(class$.gender ?? person.gender)
                             .copyWith
@@ -1390,7 +1382,7 @@ class _EditPersonState extends State<EditPerson> {
                 stream: controller.objectsStream,
                 builder: (context, snapshot) {
                   return Text(
-                    (snapshot.data?.length ?? 0).toString() + ' خدمة',
+                    (snapshot.data?.length ?? 0).toString() + ' مرحلة',
                     textAlign: TextAlign.center,
                     strutStyle:
                         StrutStyle(height: IconTheme.of(context).size! / 7.5),
@@ -1401,15 +1393,8 @@ class _EditPersonState extends State<EditPerson> {
             ),
             floatingActionButton: User.instance.permissions.write
                 ? FloatingActionButton(
-                    onPressed: () async {
-                      navigator.currentState!.pop();
-                      person = person.copyWith.classId(
-                        await navigator.currentState!
-                                .pushNamed('Data/EditClass') as JsonRef? ??
-                            person.classId,
-                      );
-                      state.didChange(person.classId);
-                    },
+                    onPressed: () =>
+                        navigator.currentState!.pushNamed('Data/EditClass'),
                     child: const Icon(Icons.group_add),
                   )
                 : null,
@@ -1435,26 +1420,6 @@ class _EditPersonState extends State<EditPerson> {
       return picked;
     }
     return null;
-  }
-
-  Future<void> _selectServices(FormFieldState<List<JsonRef>> state) async {
-    final selected = await Future.wait(
-      (state.value ?? []).map(
-        (e) async {
-          final data = await e.get();
-          if (data.exists) return Service.fromDoc(data);
-        },
-      ),
-    );
-
-    person = person.copyWith.services(
-      (await selectServices<Service>(selected.whereType<Service>().toList()))
-              ?.map((s) => s.ref)
-              .toList() ??
-          person.services,
-    );
-    state.didChange(person.services);
-    _nextFocus();
   }
 
   Future<void> _selectImage() async {

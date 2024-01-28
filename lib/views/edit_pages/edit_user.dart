@@ -456,16 +456,6 @@ class _EditUserState extends State<EditUser> {
                   ),
                 ),
                 ElevatedButton.icon(
-                  onPressed: editAdminServices,
-                  icon: const Icon(Icons.miscellaneous_services),
-                  label: Text(
-                    'تعديل الخدمات المسؤول عنها ' + user.name,
-                    softWrap: false,
-                    textScaler: const TextScaler.linear(0.95),
-                    overflow: TextOverflow.fade,
-                  ),
-                ),
-                ElevatedButton.icon(
                   onPressed: editChildrenUsers,
                   icon: const Icon(Icons.shield),
                   label: Text(

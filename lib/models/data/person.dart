@@ -1,8 +1,7 @@
 import 'dart:async';
 
 import 'package:churchdata_core/churchdata_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'
-    show DocumentReference, FieldPath;
+import 'package:cloud_firestore/cloud_firestore.dart' show DocumentReference;
 import 'package:collection/collection.dart';
 import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:flutter/material.dart';
@@ -138,14 +137,7 @@ class Person extends PersonBase {
   }
 
   Future<String> getStudyYearName() async {
-    return (await studyYear?.get())?.data()?['Name'] ?? getClassStudyYearName();
-  }
-
-  Future<String> getClassStudyYearName() async {
-    return (await ((await classId?.get())?.data()?['StudyYear'] as JsonRef?)
-                ?.get())
-            ?.data()?['Name'] ??
-        '';
+    return (await studyYear?.get())?.data()?['Name'];
   }
 
   Future<String> getChurchName() async {
@@ -192,13 +184,6 @@ class Person extends PersonBase {
             ? ''
             : '${location!.latitude},${location!.longitude}',
         'StudyYear': getStudyYearName(),
-        'Services': services.isEmpty
-            ? 'لا يوجد خدمات'
-            : Future.wait(
-                services
-                    .take(3)
-                    .map((r) async => (await r.get()).data()?['Name'] ?? ''),
-              ).then((d) => d.join(',')).catchError((_) => ''),
       };
 
   @override
@@ -322,15 +307,6 @@ class Person extends PersonBase {
                 .orderBy('Grade'),
             collectionName: 'Classes',
           ),
-          'Services': PropertyMetadata<JsonRef>(
-            name: 'Services',
-            label: 'الخدمات المشارك بها',
-            defaultValue: null,
-            query: GetIt.I<DatabaseRepository>()
-                .collection('Services')
-                .orderBy(FieldPath.fromString('StudyYearRange.From')),
-            collectionName: 'Services',
-          ),
           'Gender': const PropertyMetadata<bool>(
             name: 'Gender',
             label: 'النوع',
@@ -425,11 +401,6 @@ class Person extends PersonBase {
           'LastCall': const PropertyMetadata<DateTime>(
             name: 'LastCall',
             label: 'تاريخ أخر مكالمة',
-            defaultValue: null,
-          ),
-          'Last': const PropertyMetadata<Json>(
-            name: 'Last',
-            label: 'تاريخ أخر حضور خدمة',
             defaultValue: null,
           ),
           'LastEdit': PropertyMetadata<JsonRef>(

@@ -216,7 +216,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                           ),
                         ),
                         ListTile(
-                          title: const Text('الفصول والخدمات: '),
+                          title: const Text('الفصول: '),
                           subtitle: Text(
                             parents!.map((c) => c.name).toList().join(', '),
                             maxLines: 4,
@@ -691,7 +691,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                               ),
                             ),
                             ListTile(
-                              title: const Text('الفصول والخدمات: '),
+                              title: const Text('الفصول: '),
                               subtitle: Text(
                                 parents!.map((c) => c.name).toList().join(', '),
                                 maxLines: 4,

@@ -356,16 +356,21 @@ class _ClassInfoState extends State<ClassInfo> {
                         ),
                       ),
                       ListTile(
-                        title: const Text('السنة الدراسية:'),
-                        subtitle: FutureBuilder<String>(
-                          future: class$.getStudyYearName(),
-                          builder: (context, data) {
-                            if (data.hasData) {
-                              return Text(
-                                data.data! + ' - ' + class$.getGenderName(),
-                              );
+                        title: const Text('السنوات الدراسية'),
+                        subtitle: FutureBuilder<(String, String)>(
+                          future: Future.wait([
+                            class$.getStudyYearFromName(),
+                            class$.getStudyYearToName(),
+                          ]).then((v) => (v[0], v[1])),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {
+                              return const LinearProgressIndicator();
                             }
-                            return const LinearProgressIndicator();
+
+                            return Text(
+                              'من ${snapshot.data?.$1 ?? ''} '
+                              'إلى ${snapshot.data?.$2 ?? ''}',
+                            );
                           },
                         ),
                       ),

@@ -129,7 +129,7 @@ class _SearchQueryState extends State<SearchQuery> {
             key: const ValueKey('SelectShammasLevel'),
             value: [
               'ابصالتس',
-              'اغأناغنوستيس',
+              'أناغنوستيس',
               'أيبودياكون',
               'دياكون',
               'أرشيدياكون',
@@ -139,7 +139,7 @@ class _SearchQueryState extends State<SearchQuery> {
             isExpanded: true,
             items: [
               'ابصالتس',
-              'اغأناغنوستيس',
+              'أناغنوستيس',
               'أيبودياكون',
               'دياكون',
               'أرشيدياكون',
@@ -631,11 +631,6 @@ class _SearchQueryState extends State<SearchQuery> {
                     key: const ValueKey('CollectionKey'),
                     value: collection,
                     items: [
-                      DropdownMenuItem(
-                        value: GetIt.I<DatabaseRepository>()
-                            .collection('Services'),
-                        child: const Text('الخدمات'),
-                      ),
                       DropdownMenuItem(
                         value:
                             GetIt.I<DatabaseRepository>().collection('Classes'),

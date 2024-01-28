@@ -60,26 +60,7 @@ class _RootState extends State<Root>
     if (_tabController!.index == _tabController!.length - 2) {
       if (User.instance.permissions.manageUsers ||
           User.instance.permissions.manageAllowedUsers) {
-        final rslt = await showDialog(
-          context: context,
-          builder: (context) => SimpleDialog(
-            children: [
-              SimpleDialogOption(
-                child: const Text('اضافة فصل'),
-                onPressed: () => navigator.currentState!.pop(true),
-              ),
-              SimpleDialogOption(
-                child: const Text('اضافة خدمة'),
-                onPressed: () => navigator.currentState!.pop(false),
-              ),
-            ],
-          ),
-        );
-        if (rslt == true) {
-          unawaited(navigator.currentState!.pushNamed('Data/EditClass'));
-        } else if (rslt == false) {
-          unawaited(navigator.currentState!.pushNamed('Data/EditService'));
-        }
+        unawaited(navigator.currentState!.pushNamed('Data/EditClass'));
       } else {
         unawaited(navigator.currentState!.pushNamed('Data/EditClass'));
       }
@@ -233,8 +214,8 @@ class _RootState extends State<Root>
               ),
             Tab(
               key: _createOrGetFeatureKey('Services'),
-              text: 'الخدمات',
-              icon: const Icon(Icons.miscellaneous_services),
+              text: 'المراحل الدراسية',
+              icon: const Icon(Icons.group),
             ),
             Tab(
               key: _createOrGetFeatureKey('Persons'),
@@ -1155,7 +1136,7 @@ class _RootState extends State<Root>
           TargetContent(
             child: Text(
               'هنا تجد قائمة بكل الفصول في'
-              ' البرنامج مقسمة الى الخدمات وسنوات الدراسة',
+              ' البرنامج مقسمة الى المراحل وسنوات الدراسة',
               style: Theme.of(context)
                   .textTheme
                   .titleSmall

@@ -93,13 +93,13 @@ class Services extends TableBase<Service> {
                   (user) => (user.permissions.superAccess
                           ? repository
                               .collection('Classes')
-                              .orderBy('StudyYear')
+                              .orderBy('StudyYearFrom')
                               .orderBy('Gender')
                               .snapshots()
                           : repository
                               .collection('Classes')
                               .where('Allowed', arrayContains: user.uid)
-                              .orderBy('StudyYear')
+                              .orderBy('StudyYearFrom')
                               .orderBy('Gender')
                               .snapshots())
                       .map(
@@ -129,10 +129,7 @@ class Services extends TableBase<Service> {
       combined,
       compare: (c, c2) {
         if (c is Class && c2 is Class) {
-          if (c.studyYear == c2.studyYear) return c.gender.compareTo(c2.gender);
-          return studyYears[c.studyYear]!
-              .grade
-              .compareTo(studyYears[c2.studyYear]!.grade);
+          return c.compareTo(c2, studyYears);
         } else if (c is Service && c2 is Service) {
           return ((studyYears[c.studyYearRange?.from]?.grade ?? 0) +
                   (studyYears[c.studyYearRange?.to]?.grade ?? 0))
@@ -174,8 +171,8 @@ class Services extends TableBase<Service> {
       combined,
       (c) {
         if (c is Class) {
-          return studyYears[c.studyYear] != null
-              ? PreferredStudyYear.fromStudyYear(studyYears[c.studyYear]!)
+          return studyYears[c.studyYearFrom] != null
+              ? PreferredStudyYear.fromStudyYear(studyYears[c.studyYearFrom]!)
               : null;
         } else if (c is Service &&
             c.studyYearRange?.from == c.studyYearRange?.to) {
@@ -224,7 +221,7 @@ class Services extends TableBase<Service> {
           : repository
               .collection('Classes')
               .where('Allowed', arrayContains: uid)
-              .orderBy('StudyYear')
+              .orderBy('StudyYearFrom')
               .orderBy('Gender')
               .snapshots()
               .map((cs) => cs.docs.map(Class.fromDoc).toList()),

@@ -32,7 +32,7 @@ class ExamsPage extends StatelessWidget {
           final exams = snapshot.data!;
 
           if (exams.isEmpty) {
-            return const Center(child: Text('لا يوجد امتحانات لهذه الخدمة'));
+            return const Center(child: Text('لا يوجد امتحانات لهذه المرحلة'));
           }
 
           return ListView.builder(

@@ -13,7 +13,9 @@ abstract class _$ClassCWProxy {
 
   Class allowedUsers(List<String>? allowedUsers);
 
-  Class studyYear(DocumentReference<Map<String, dynamic>>? studyYear);
+  Class studyYearFrom(DocumentReference<Map<String, dynamic>>? studyYearFrom);
+
+  Class studyYearTo(DocumentReference<Map<String, dynamic>>? studyYearTo);
 
   Class gender(bool? gender);
 
@@ -33,7 +35,8 @@ abstract class _$ClassCWProxy {
     DocumentReference<Map<String, dynamic>>? ref,
     String? name,
     List<String>? allowedUsers,
-    DocumentReference<Map<String, dynamic>>? studyYear,
+    DocumentReference<Map<String, dynamic>>? studyYearFrom,
+    DocumentReference<Map<String, dynamic>>? studyYearTo,
     bool? gender,
     bool? hasPhoto,
     Color? color,
@@ -58,8 +61,12 @@ class _$ClassCWProxyImpl implements _$ClassCWProxy {
       this(allowedUsers: allowedUsers);
 
   @override
-  Class studyYear(DocumentReference<Map<String, dynamic>>? studyYear) =>
-      this(studyYear: studyYear);
+  Class studyYearFrom(DocumentReference<Map<String, dynamic>>? studyYearFrom) =>
+      this(studyYearFrom: studyYearFrom);
+
+  @override
+  Class studyYearTo(DocumentReference<Map<String, dynamic>>? studyYearTo) =>
+      this(studyYearTo: studyYearTo);
 
   @override
   Class gender(bool? gender) => this(gender: gender);
@@ -85,7 +92,8 @@ class _$ClassCWProxyImpl implements _$ClassCWProxy {
     Object? ref = const $CopyWithPlaceholder(),
     Object? name = const $CopyWithPlaceholder(),
     Object? allowedUsers = const $CopyWithPlaceholder(),
-    Object? studyYear = const $CopyWithPlaceholder(),
+    Object? studyYearFrom = const $CopyWithPlaceholder(),
+    Object? studyYearTo = const $CopyWithPlaceholder(),
     Object? gender = const $CopyWithPlaceholder(),
     Object? hasPhoto = const $CopyWithPlaceholder(),
     Object? color = const $CopyWithPlaceholder(),
@@ -104,10 +112,14 @@ class _$ClassCWProxyImpl implements _$ClassCWProxy {
           ? _value.allowedUsers
           // ignore: cast_nullable_to_non_nullable
           : allowedUsers as List<String>?,
-      studyYear: studyYear == const $CopyWithPlaceholder()
-          ? _value.studyYear
+      studyYearFrom: studyYearFrom == const $CopyWithPlaceholder()
+          ? _value.studyYearFrom
           // ignore: cast_nullable_to_non_nullable
-          : studyYear as DocumentReference<Map<String, dynamic>>?,
+          : studyYearFrom as DocumentReference<Map<String, dynamic>>?,
+      studyYearTo: studyYearTo == const $CopyWithPlaceholder()
+          ? _value.studyYearTo
+          // ignore: cast_nullable_to_non_nullable
+          : studyYearTo as DocumentReference<Map<String, dynamic>>?,
       gender: gender == const $CopyWithPlaceholder()
           ? _value.gender
           // ignore: cast_nullable_to_non_nullable
@@ -141,7 +153,8 @@ extension $ClassCopyWith on Class {
   /// ````
   Class copyWithNull({
     bool allowedUsers = false,
-    bool studyYear = false,
+    bool studyYearFrom = false,
+    bool studyYearTo = false,
     bool gender = false,
     bool color = false,
     bool lastEdit = false,
@@ -150,7 +163,8 @@ extension $ClassCopyWith on Class {
       ref: ref,
       name: name,
       allowedUsers: allowedUsers == true ? null : this.allowedUsers,
-      studyYear: studyYear == true ? null : this.studyYear,
+      studyYearFrom: studyYearFrom == true ? null : this.studyYearFrom,
+      studyYearTo: studyYearTo == true ? null : this.studyYearTo,
       gender: gender == true ? null : this.gender,
       hasPhoto: hasPhoto,
       color: color == true ? null : this.color,

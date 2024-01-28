@@ -82,7 +82,7 @@ class _MHMapViewState extends State<MHMapView> {
                     await showDialog(
                       context: context,
                       builder: (context) => const AlertDialog(
-                        content: Text('برجاء اختيار فصل أو خدمة على الأقل'),
+                        content: Text('برجاء اختيار فصل على الأقل'),
                       ),
                     );
                   } else if (rslt != null) {

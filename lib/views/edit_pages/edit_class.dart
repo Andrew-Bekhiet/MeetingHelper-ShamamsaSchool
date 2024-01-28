@@ -140,7 +140,7 @@ class _EditClassState extends State<EditClass> {
                                   return null;
                                 }
                               },
-                              value: class$.studyYear,
+                              value: class$.studyYearFrom,
                               items: data.data!
                                   .map(
                                     (item) => DropdownMenuItem(
@@ -157,11 +157,58 @@ class _EditClassState extends State<EditClass> {
                                 ),
                               onChanged: (value) {
                                 setState(() {});
-                                class$ = class$.copyWith.studyYear(value);
+                                class$ = class$.copyWith.studyYearFrom(value);
                                 FocusScope.of(context).nextFocus();
                               },
                               decoration: const InputDecoration(
-                                labelText: 'السنة الدراسية',
+                                labelText: 'السنة الدراسية من',
+                              ),
+                            ),
+                          );
+                        } else {
+                          return const SizedBox(width: 1, height: 1);
+                        }
+                      },
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: FutureBuilder<List<StudyYear>>(
+                      future: StudyYear.getAll().first,
+                      builder: (conext, data) {
+                        if (data.hasData) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(vertical: 4.0),
+                            child: DropdownButtonFormField<JsonRef?>(
+                              validator: (v) {
+                                if (v == null) {
+                                  return 'هذا الحقل مطلوب';
+                                } else {
+                                  return null;
+                                }
+                              },
+                              value: class$.studyYearFrom,
+                              items: data.data!
+                                  .map(
+                                    (item) => DropdownMenuItem(
+                                      value: item.ref,
+                                      child: Text(item.name),
+                                    ),
+                                  )
+                                  .toList()
+                                ..insert(
+                                  0,
+                                  const DropdownMenuItem(
+                                    child: Text(''),
+                                  ),
+                                ),
+                              onChanged: (value) {
+                                setState(() {});
+                                class$ = class$.copyWith.studyYearTo(value);
+                                FocusScope.of(context).nextFocus();
+                              },
+                              decoration: const InputDecoration(
+                                labelText: 'السنة الدراسية إلى',
                               ),
                             ),
                           );
