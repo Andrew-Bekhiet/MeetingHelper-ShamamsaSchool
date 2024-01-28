@@ -49,12 +49,14 @@
 
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
-    <application android:name="${applicationName}"
-        android:label="خدمة مدرسة الشمامسة"
+    <application android:label="خدمة مدرسة الشمامسة"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher"
         android:allowBackup="false"
-        android:fullBackupContent="false"
-        android:icon="@mipmap/ic_launcher">
+        android:extractNativeLibs="true"
+        android:fullBackupContent="false">
         <activity android:name=".MainActivity"
+            android:exported="true"
             android:launchMode="singleTop"
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
