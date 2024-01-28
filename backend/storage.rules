@@ -1,0 +1,146 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function checkUserRegistered() {
+      return request.auth.uid != null
+        && request.auth.token.approved
+        && (
+      request.auth.token.lastTanawol == null
+        || request.auth.token.lastConfession == null
+        || (
+      (request.auth.token.lastTanawol + 5184000000) > request.time.toMillis()
+        && (request.auth.token.lastConfession + 5184000000) > request.time.toMillis()
+      )
+      );
+    }
+
+    function checkCanReadUser(user){
+      return checkUserRegistered()
+        && (
+      request.auth.token.manageUsers
+        || request.auth.token.secretary
+        || (
+      request.auth.token.manageAllowedUsers
+        && request.auth.uid in firestore.get(/databases/$(database)/documents/UsersData/$(user)).data.AllowedUsers
+      )
+      );
+    }
+
+    match /ClassesPhotos {
+      match /{class} {
+        function canAccessClass() {
+          return request.auth.token.superAccess
+            || request.auth.uid in firestore.get(/databases/$(database)/documents/Classes/$(class)).data.Allowed;
+        }
+
+        allow read: if checkUserRegistered()
+          && canAccessClass();
+
+        allow delete: if checkUserRegistered()
+          && canAccessClass()
+          && request.auth.token.write;
+
+        allow update: if checkUserRegistered()
+          && canAccessClass()
+          && request.auth.token.write;
+
+        allow create: if checkUserRegistered()
+          && (request.auth.token.manageUsers
+          || request.auth.token.manageAllowedUsers
+          || [request.auth.uid].hasAll(firestore.get(/databases/$(database)/documents/Classes/$(class)).data.Allowed)
+        )
+          && request.auth.token.write;
+      }
+    }
+
+    match /PersonsPhotos {
+
+      match /{person} {
+        function canAccessPerson(resource) {
+          return request.auth.token.superAccess
+            || (!resource.data.keys().hasAny(['ClassId'])
+          ? false
+          : request.auth.uid in firestore.get(resource.data.ClassId).data.Allowed
+          )
+            || (!resource.data.keys().hasAny(['Services'])
+          ? false
+          : resource.data.Services
+          .hasAny(firestore.get(/databases/$(database)/documents/UsersData/$(request.auth.token.personId))
+          .data
+          .AdminServices)
+          );
+        }
+
+        function canUpdatePerson(resource) {
+          return canAccessPerson(resource)
+            && (request.auth.token.superAccess
+            || ((!resource.data.keys().hasAny(['ClassId'])
+            || resource.data.ClassId == null
+          )
+            && firestore.get(/databases/$(database)/documents/UsersData/$(request.auth.token.personId))
+          .data
+          .AdminServices
+          .hasAll(resource.data.Services)
+          )
+            || request.auth.uid in firestore.get(resource.data.ClassId).data.Allowed
+          );
+        }
+
+        allow read: if checkUserRegistered()
+          && canAccessPerson(firestore.get(/databases/$(database)/documents/Persons/$(person)));
+
+        allow delete: if checkUserRegistered()
+          && request.auth.token.write
+          && canAccessPerson(firestore.get(/databases/$(database)/documents/Persons/$(person)));
+
+        allow create, update: if checkUserRegistered()
+          && request.auth.token.write
+          && canUpdatePerson(firestore.get(/databases/$(database)/documents/Persons/$(person)));
+      }
+
+      match /ServicesPhotos/{_service} {
+        allow create: if checkUserRegistered()
+          && (request.auth.token.manageUsers
+          || request.auth.token.manageAllowedUsers
+        )
+          && request.auth.token.write;
+
+        allow update: if checkUserRegistered()
+          && request.auth.token.write
+          && (request.auth.token.manageUsers 
+          || request.auth.token.manageAllowedUsers
+          || /databases/$(database)/documents/Services/$(_service)
+        in firestore.get(/databases/$(database)/documents/UsersData/$(request.auth.token.personId)).data.AdminServices
+        );
+
+        allow delete: if checkUserRegistered()
+          && request.auth.token.write
+          && (request.auth.token.manageUsers 
+          || request.auth.token.manageAllowedUsers
+          || /databases/$(database)/documents/Services/$(_service)
+        in firestore.get(/databases/$(database)/documents/UsersData/$(request.auth.token.personId)).data.AdminServices
+        );
+
+        allow read: if checkUserRegistered();
+      }
+
+      match /UsersPhotos/{any} {
+        allow read, write: if checkUserRegistered();
+      }
+
+      match /Deleted/{any=**} {
+        allow read, write: if checkUserRegistered();
+      }
+
+      match /Exports/{any=**} {
+        allow read: if checkUserRegistered()
+          && resource.metadata.createdBy == request.auth.uid;
+      }
+
+      match /Imports/{any=**} {
+        allow read, write: if checkUserRegistered();
+      }
+    }
+  }
+}
