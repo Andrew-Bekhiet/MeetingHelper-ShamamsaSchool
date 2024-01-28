@@ -28,7 +28,6 @@ import 'package:meetinghelper/views.dart';
 import 'package:meetinghelper/widgets.dart';
 import 'package:meetinghelper/widgets/update_widget.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:supabase/supabase.dart' hide User;
 import 'package:timeago/timeago.dart';
 
 import 'exceptions/unsupported_version_exception.dart';
@@ -145,10 +144,6 @@ Future<void> initMeetingHelper() async {
       cacheSizeBytes: cacheSizeBytes,
     );
   }
-
-  GetIt.I.registerSingleton<SupabaseClient>(
-    SupabaseClient(supabaseURL, supabaseKey),
-  );
 
   return _initialization.complete();
 }

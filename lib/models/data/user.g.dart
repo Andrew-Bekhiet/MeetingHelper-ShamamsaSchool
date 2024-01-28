@@ -23,8 +23,6 @@ abstract class _$UserCWProxy {
 
   User password(String? password);
 
-  User supabaseToken(String? supabaseToken);
-
   User permissions(MHPermissionsSet permissions);
 
   User allowedUsers(List<String> allowedUsers);
@@ -47,7 +45,6 @@ abstract class _$UserCWProxy {
     DocumentReference<Map<String, dynamic>>? classId,
     String? email,
     String? password,
-    String? supabaseToken,
     MHPermissionsSet? permissions,
     List<String>? allowedUsers,
     List<DocumentReference<Map<String, dynamic>>>? adminServices,
@@ -87,10 +84,6 @@ class _$UserCWProxyImpl implements _$UserCWProxy {
   User password(String? password) => this(password: password);
 
   @override
-  User supabaseToken(String? supabaseToken) =>
-      this(supabaseToken: supabaseToken);
-
-  @override
   User permissions(MHPermissionsSet permissions) =>
       this(permissions: permissions);
 
@@ -120,7 +113,6 @@ class _$UserCWProxyImpl implements _$UserCWProxy {
     Object? classId = const $CopyWithPlaceholder(),
     Object? email = const $CopyWithPlaceholder(),
     Object? password = const $CopyWithPlaceholder(),
-    Object? supabaseToken = const $CopyWithPlaceholder(),
     Object? permissions = const $CopyWithPlaceholder(),
     Object? allowedUsers = const $CopyWithPlaceholder(),
     Object? adminServices = const $CopyWithPlaceholder(),
@@ -158,10 +150,6 @@ class _$UserCWProxyImpl implements _$UserCWProxy {
           ? _value.password
           // ignore: cast_nullable_to_non_nullable
           : password as String?,
-      supabaseToken: supabaseToken == const $CopyWithPlaceholder()
-          ? _value.supabaseToken
-          // ignore: cast_nullable_to_non_nullable
-          : supabaseToken as String?,
       permissions:
           permissions == const $CopyWithPlaceholder() || permissions == null
               ? _value.permissions
@@ -198,7 +186,6 @@ extension $UserCopyWith on User {
     bool classId = false,
     bool email = false,
     bool password = false,
-    bool supabaseToken = false,
   }) {
     return User(
       ref: ref,
@@ -209,7 +196,6 @@ extension $UserCopyWith on User {
       classId: classId == true ? null : this.classId,
       email: email == true ? null : this.email,
       password: password == true ? null : this.password,
-      supabaseToken: supabaseToken == true ? null : this.supabaseToken,
       permissions: permissions,
       allowedUsers: allowedUsers,
       adminServices: adminServices,

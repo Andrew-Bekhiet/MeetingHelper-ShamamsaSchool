@@ -9,10 +9,6 @@ version: 8.3.2+33
 environment:
   sdk: ">=3.0.0 <4.0.0"
 
-dependency_overrides:
-  collection: ^1.17.2
-  intl: ^0.18.1
-
 dependencies:
   android_alarm_manager_plus: ^3.0.1
   async: ^2.8.2
@@ -76,7 +72,6 @@ dependencies:
   sentry_flutter: ^7.9.0
   share_plus: ^7.0.2
   spreadsheet_decoder: ^2.0.2
-  supabase: ^1.0.0
   syncfusion_flutter_charts: ^23.1.44
   timeago: ^3.2.2
   tinycolor2: ^3.0.1

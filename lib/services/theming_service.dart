@@ -42,12 +42,12 @@ class MHThemingService extends ThemingService {
         accentColor: secondary,
       ),
     ).copyWith(
-      // inputDecorationTheme: InputDecorationTheme(
-      //   border: OutlineInputBorder(
-      //     borderRadius: BorderRadius.circular(15),
-      //     borderSide: BorderSide(color: primary),
-      //   ),
-      // ),
+      inputDecorationTheme: InputDecorationTheme(
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide(color: primary),
+        ),
+      ),
       floatingActionButtonTheme:
           const FloatingActionButtonThemeData(shape: CircleBorder()),
       visualDensity: VisualDensity.adaptivePlatformDensity,

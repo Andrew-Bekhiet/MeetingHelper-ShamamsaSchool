@@ -10,8 +10,6 @@ import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/services.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:supabase/supabase.dart' hide User;
-import 'package:supabase/supabase.dart' as supabase show User;
 
 class MHAuthRepository extends AuthRepository<User, Person> {
   static MHAuthRepository get instance => GetIt.I<MHAuthRepository>();
@@ -60,7 +58,6 @@ class MHAuthRepository extends AuthRepository<User, Person> {
       firebaseUser != null || (name != null && uid != null && email != null),
     );
 
-    await refreshSupabaseToken(idTokenClaims['supabaseToken']);
 
     if (idTokenClaims['personId'] != currentUserData?.ref.id) {
       await personListener?.cancel();
@@ -80,7 +77,6 @@ class MHAuthRepository extends AuthRepository<User, Person> {
                 name: firebaseUser?.displayName ?? name ?? '',
                 email: firebaseUser?.email ?? email!,
                 password: idTokenClaims['password'],
-                supabaseToken: idTokenClaims['supabaseToken'],
                 permissions: permissionsFromIdToken(idTokenClaims),
                 classId: doc.data()?['ClassId'],
                 allowedUsers: doc.data()?['AllowedUsers']?.cast<String>() ?? [],
@@ -103,7 +99,6 @@ class MHAuthRepository extends AuthRepository<User, Person> {
           name: firebaseUser?.displayName ?? name ?? '',
           email: firebaseUser?.email ?? email!,
           password: idTokenClaims['password'],
-          supabaseToken: idTokenClaims['supabaseToken'],
           permissions: permissionsFromIdToken(idTokenClaims),
           lastTanawol: currentUser?.lastTanawol,
           lastConfession: currentUser?.lastConfession,
@@ -130,7 +125,6 @@ class MHAuthRepository extends AuthRepository<User, Person> {
       name: firebaseUser?.displayName ?? name ?? '',
       email: firebaseUser?.email ?? email!,
       password: idTokenClaims['password'],
-      supabaseToken: idTokenClaims['supabaseToken'],
       permissions: permissionsFromIdToken(idTokenClaims),
       lastTanawol: currentUser?.lastTanawol,
       lastConfession: currentUser?.lastConfession,
@@ -140,58 +134,4 @@ class MHAuthRepository extends AuthRepository<User, Person> {
     );
   }
 
-  Future<void> refreshSupabaseToken([String? supabaseToken]) async {
-    if (!GetIt.I.isRegistered(instance: this) || !userSubject.hasValue) return;
-
-    if (supabaseToken == null ||
-        DateTime.fromMillisecondsSinceEpoch(
-          json.decode(
-                utf8.decode(
-                  base64.decode(
-                    supabaseToken.split('.')[1].padRight(
-                          supabaseToken.split('.')[1].length +
-                              4 -
-                              (supabaseToken.split('.')[1].length % 4),
-                          '=',
-                        ),
-                  ),
-                ),
-              )['exp'] *
-              1000,
-        ).isBefore(DateTime.now())) {
-      await GetIt.I<MHFunctionsService>().refreshSupabaseToken();
-    } else {
-      await GetIt.I<SupabaseClient>().auth.recoverSession(
-            json.encode(
-              {
-                'currentSession': Session(
-                  accessToken: supabaseToken,
-                  tokenType: 'bearer',
-                  user: const supabase.User(
-                    id: '',
-                    appMetadata: {},
-                    userMetadata: {},
-                    aud: '',
-                    role: '',
-                    updatedAt: '',
-                    createdAt: '',
-                  ),
-                ).toJson(),
-                'expiresAt': json.decode(
-                  utf8.decode(
-                    base64.decode(
-                      supabaseToken.split('.')[1].padRight(
-                            supabaseToken.split('.')[1].length +
-                                4 -
-                                (supabaseToken.split('.')[1].length % 4),
-                            '=',
-                          ),
-                    ),
-                  ),
-                )['exp'],
-              },
-            ),
-          );
-    }
-  }
 }

@@ -28,8 +28,6 @@ class _MHMapViewState extends State<MHMapView> {
   final BehaviorSubject<List<DataObject>?> selectedServices =
       BehaviorSubject.seeded(null);
 
-  bool showAreas = false;
-
   @override
   void dispose() {
     super.dispose();
@@ -90,20 +88,6 @@ class _MHMapViewState extends State<MHMapView> {
                   }
                 },
               ),
-              PopupMenuButton(
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    onTap: () {
-                      setState(() {
-                        showAreas = !showAreas;
-                      });
-                    },
-                    child: showAreas
-                        ? const Text('اخفاء المناطق')
-                        : const Text('اظهار المناطق'),
-                  ),
-                ],
-              ),
             ],
           ),
           body: FutureBuilder<List<Person>>(
@@ -163,56 +147,42 @@ class _MHMapViewState extends State<MHMapView> {
                     );
                   }
 
-                  return FutureBuilder<List<Polygon>>(
-                    future: showAreas
-                        ? GetIt.I<MHDatabaseRepo>().getAllAreas()
-                        : Future.value([]),
-                    builder: (context, snapshot) {
-                      if (showAreas &&
-                          snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-
-                      return GoogleMap(
-                        myLocationEnabled: true,
-                        polygons: snapshot.data?.toSet() ?? {},
-                        markers: persons
-                            .map(
-                              (p) => Marker(
-                                onTap: () {
-                                  scaffoldMessenger.currentState!
-                                      .hideCurrentSnackBar();
-                                  scaffoldMessenger.currentState!.showSnackBar(
-                                    SnackBar(
-                                      content: Text(p.name),
-                                      backgroundColor:
-                                          p.color == Colors.transparent
-                                              ? null
-                                              : p.color,
-                                      action: SnackBarAction(
-                                        label: 'فتح',
-                                        onPressed: () =>
-                                            GetIt.I<MHViewableObjectService>()
-                                                .personTap(p),
-                                      ),
-                                    ),
-                                  );
-                                },
-                                markerId: MarkerId(p.id),
-                                infoWindow: InfoWindow(title: p.name),
-                                position: p.location!.toLatLng(),
-                              ),
-                            )
-                            .toSet(),
-                        initialCameraPosition: CameraPosition(
-                          zoom: 13,
-                          target: locationData.data?.toLatLng() ??
-                              getCentralGeoCoordinate(
-                                persons.map((p) => p.location!).toList(),
-                              ).toLatLng(),
-                        ),
-                      );
-                    },
+                  return GoogleMap(
+                    myLocationEnabled: true,
+                    markers: persons
+                        .map(
+                          (p) => Marker(
+                            onTap: () {
+                              scaffoldMessenger.currentState!
+                                  .hideCurrentSnackBar();
+                              scaffoldMessenger.currentState!.showSnackBar(
+                                SnackBar(
+                                  content: Text(p.name),
+                                  backgroundColor: p.color == Colors.transparent
+                                      ? null
+                                      : p.color,
+                                  action: SnackBarAction(
+                                    label: 'فتح',
+                                    onPressed: () =>
+                                        GetIt.I<MHViewableObjectService>()
+                                            .personTap(p),
+                                  ),
+                                ),
+                              );
+                            },
+                            markerId: MarkerId(p.id),
+                            infoWindow: InfoWindow(title: p.name),
+                            position: p.location!.toLatLng(),
+                          ),
+                        )
+                        .toSet(),
+                    initialCameraPosition: CameraPosition(
+                      zoom: 13,
+                      target: locationData.data?.toLatLng() ??
+                          getCentralGeoCoordinate(
+                            persons.map((p) => p.location!).toList(),
+                          ).toLatLng(),
+                    ),
                   );
                 },
               );

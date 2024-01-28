@@ -4,11 +4,9 @@ import 'package:churchdata_core/churchdata_core.dart';
 import 'package:churchdata_core_mocks/churchdata_core.mocks.dart';
 import 'package:churchdata_core_mocks/fakes/fake_cache_repo.dart';
 import 'package:churchdata_core_mocks/fakes/fake_firebase_auth.dart';
-import 'package:churchdata_core_mocks/fakes/fake_functions_repo.dart';
 import 'package:churchdata_core_mocks/fakes/fake_notifications_repo.dart';
 import 'package:churchdata_core_mocks/fakes/mock_user.dart';
 import 'package:churchdata_core_mocks/models/basic_data_object.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_auth_platform_interface/firebase_auth_platform_interface.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
@@ -61,16 +59,6 @@ void setUpMHPlatformChannels() {
       .thenAnswer((_) async => null);
   when((GetIt.I<FirebaseMessaging>() as MockFirebaseMessaging).isSupported())
       .thenAnswer((_) async => false);
-
-  final fakeHttpsCallable = FakeHttpsCallable();
-  final fakeHttpsCallableResult = FakeHttpsCallableResult();
-  when(
-    (GetIt.I<FirebaseFunctions>() as MockFirebaseFunctions)
-        .httpsCallable('refreshSupabaseToken'),
-  ).thenReturn(fakeHttpsCallable);
-  when(fakeHttpsCallable.call(captureAny))
-      .thenAnswer((_) async => fakeHttpsCallableResult);
-  when(fakeHttpsCallableResult.data).thenReturn('supabaseToken');
 }
 
 Future<void> initFakeCore() async {

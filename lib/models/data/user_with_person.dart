@@ -17,8 +17,6 @@ class UserWithPerson extends Person implements User {
   final MHPermissionsSet permissions;
   @override
   final String? password;
-  @override
-  String? get supabaseToken => null;
 
   @override
   final List<String> allowedUsers;
