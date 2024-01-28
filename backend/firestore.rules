@@ -6,7 +6,7 @@ service cloud.firestore {
     }
 
     function classFields(){
-      return ['Name','StudyYear','Gender','HasPhoto','Color','LastEdit','LastEditTime','Allowed'].toSet();
+      return ['Name','StudyYearFrom','StudyYearTo','Gender','HasPhoto','Color','LastEdit','LastEditTime','Allowed'].toSet();
     }
 
     function personFields(){

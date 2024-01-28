@@ -51,7 +51,7 @@
           "arrayConfig": "CONTAINS"
         },
         {
-          "fieldPath": "StudyYear",
+          "fieldPath": "StudyYearFrom",
           "order": "ASCENDING"
         }
       ]
@@ -65,7 +65,7 @@
           "arrayConfig": "CONTAINS"
         },
         {
-          "fieldPath": "StudyYear",
+          "fieldPath": "StudyYearFrom",
           "order": "ASCENDING"
         },
         {
@@ -79,7 +79,7 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "StudyYear",
+          "fieldPath": "StudyYearFrom",
           "order": "ASCENDING"
         },
         {
