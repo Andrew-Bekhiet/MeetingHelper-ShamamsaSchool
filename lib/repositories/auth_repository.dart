@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_database/firebase_database.dart';
@@ -7,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
-import 'package:meetinghelper/services.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -57,7 +54,6 @@ class MHAuthRepository extends AuthRepository<User, Person> {
     assert(
       firebaseUser != null || (name != null && uid != null && email != null),
     );
-
 
     if (idTokenClaims['personId'] != currentUserData?.ref.id) {
       await personListener?.cancel();
@@ -133,5 +129,4 @@ class MHAuthRepository extends AuthRepository<User, Person> {
       adminServices: currentUser?.adminServices ?? [],
     );
   }
-
 }
