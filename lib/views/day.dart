@@ -520,6 +520,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
     final bool isSameDay =
         DateTime.now().difference(widget.record.day.toDate()).inDays == 0;
     dayOptions = HistoryDayOptions(
+      showSubtitlesInGroups: true,
       grouped: !isSameDay,
       showOnly: isSameDay ? null : true,
       enabled: isSameDay && User.instance.permissions.recordHistory,

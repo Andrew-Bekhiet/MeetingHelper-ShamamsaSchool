@@ -26,7 +26,7 @@ class _ClassInfoState extends State<ClassInfo> {
   final BehaviorSubject<OrderOptions> _orderOptions =
       BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
-  late final ListController<void, Person> _listOptions;
+  late final ListController<StudyYear?, Person> _listController;
 
   final _edit = GlobalKey();
   final _share = GlobalKey();
@@ -44,7 +44,9 @@ class _ClassInfoState extends State<ClassInfo> {
   @override
   void initState() {
     super.initState();
-    _listOptions = ListController<void, Person>(
+    _listController = ListController<StudyYear?, Person>(
+      groupByStream: MHDatabaseRepo.I.persons.groupPersonsByStudyYearRef,
+      groupingStream: Stream.value(true),
       objectsPaginatableStream: PaginatableStream.loadAll(
         stream: _orderOptions.switchMap(
           (order) => widget.class$
@@ -413,7 +415,7 @@ class _ClassInfoState extends State<ClassInfo> {
                       ),
                       SearchFilters(
                         Person,
-                        options: _listOptions,
+                        options: _listController,
                         orderOptions: _orderOptions,
                         textStyle: Theme.of(context).textTheme.bodyMedium,
                       ),
@@ -425,8 +427,9 @@ class _ClassInfoState extends State<ClassInfo> {
             body: SafeArea(
               child: class$.ref.path.startsWith('Deleted')
                   ? const Text('يجب استعادة الفصل لرؤية المخدومين بداخله')
-                  : DataObjectListView<void, Person>(
-                      controller: _listOptions,
+                  : DataObjectListView<StudyYear?, Person>(
+                      groupBuilder: _studyYearGroupBuilder,
+                      controller: _listController,
                       autoDisposeController: true,
                     ),
             ),
@@ -435,7 +438,7 @@ class _ClassInfoState extends State<ClassInfo> {
             color: Theme.of(context).colorScheme.primary,
             shape: const CircularNotchedRectangle(),
             child: StreamBuilder<List>(
-              stream: _listOptions.objectsStream,
+              stream: _listController.objectsStream,
               builder: (context, snapshot) {
                 return Text(
                   (snapshot.data?.length ?? 0).toString() + ' مخدوم',
@@ -461,6 +464,46 @@ class _ClassInfoState extends State<ClassInfo> {
               : null,
         );
       },
+    );
+  }
+
+  Widget _studyYearGroupBuilder(
+    StudyYear? object, {
+    void Function(StudyYear)? onLongPress,
+    void Function(StudyYear)? onTap,
+    void Function()? onTapOnNull,
+    bool? showSubtitle = true,
+    Widget? trailing,
+    Widget? subtitle,
+  }) {
+    subtitle ??= Text(
+      'يتم عرض ' +
+          (_listController.currentGroupedObjectsOrNull?[object]?.length ?? 0)
+              .toString() +
+          ' مخدوم داخل الفصل',
+    );
+
+    if (object == null) {
+      return ListTile(
+        title: const Text('غير محددة'),
+        subtitle: showSubtitle ?? false ? subtitle : null,
+        onTap:
+            onTap != null && object != null ? () => onTap(object) : onTapOnNull,
+        onLongPress: onLongPress != null && object != null
+            ? () => onLongPress(object)
+            : null,
+        trailing: trailing,
+      );
+    }
+
+    return ViewableObjectWidget<StudyYear>(
+      object,
+      wrapInCard: false,
+      showSubtitle: showSubtitle ?? false,
+      subtitle: showSubtitle ?? false ? subtitle : null,
+      onTap: onTap != null ? () => onTap(object) : null,
+      onLongPress: onLongPress != null ? () => onLongPress(object) : null,
+      trailing: trailing,
     );
   }
 
