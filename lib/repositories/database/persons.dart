@@ -178,19 +178,22 @@ class Persons extends TableBase<Person> {
           compare: (c, c2) => c.compareTo(c2, studyYears),
         );
 
+        final unknownClassPersons = personsByClassRef.entries
+            .where((kv) => !classesIds.contains(kv.key))
+            .map((e) => e.value)
+            .expand((e) => e)
+            .sortedBy((c) => c.name)
+            .toList();
+
         return {
           for (final c in classes) c: personsByClassRef[c.ref]!,
-          Class(
-            name: 'غير معروف',
-            ref: GetIt.I<FirebaseFirestore>()
-                .collection('Classes')
-                .doc('unknown'),
-          ): personsByClassRef.entries
-              .where((kv) => !classesIds.contains(kv.key))
-              .map((e) => e.value)
-              .expand((e) => e)
-              .sortedBy((c) => c.name)
-              .toList(),
+          if (unknownClassPersons.isNotEmpty)
+            Class(
+              name: 'غير معروف',
+              ref: GetIt.I<FirebaseFirestore>()
+                  .collection('Classes')
+                  .doc('unknown'),
+            ): unknownClassPersons,
         };
       },
     );
