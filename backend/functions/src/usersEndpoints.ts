@@ -863,33 +863,3 @@ export const adminRecoverDoc = https.onCall(async (data, context) => {
     );
   else throw new HttpsError("unauthenticated", "unauthenticated");
 });
-
-export const refreshSupabaseToken = https.onCall(async (data, context) => {
-  if (!context.auth) throw new HttpsError("unauthenticated", "");
-  const { customClaims } = await auth().getUser(context.auth!.uid);
-
-  if (!customClaims?.approved) return null;
-
-  console.info({ context });
-
-  await database()
-    .ref()
-    .child("Users/" + context.auth.uid + "/forceRefresh")
-    .set(true);
-
-  return "OK";
-});
-
-/* const test = https.onRequest(async (req, res) => {
-  let headers = {
-    "Content-disposition": 'attachment; filename="' + "giraffe.jpg" + '"',
-    "Content-Type": "image/png",
-  };
-
-  // Streams are supported for reading files.
-  const remoteReadStream = storage().bucket().file("giraffe.jpg").createReadStream();
-
-  // Set the response code & headers and pipe content to response
-  res.status(200).set(headers);
-  remoteReadStream.pipe(res);
-}); */
