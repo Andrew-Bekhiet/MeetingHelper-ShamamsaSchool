@@ -79,7 +79,7 @@ jobs:
       - name: Get version from pubspec.yaml
         id: version
         run: |
-          version=$(grep 'version:' pubspec.yaml | awk '{print $2}' | awk -F "+" '{print $1}')
+          version=$(grep -m 1 'version:' pubspec.yaml | awk '{print $2}' | awk -F "+" '{print $1}')
           echo "version=$version" >> $GITHUB_OUTPUT
 
       - name: Add version to APK filename
