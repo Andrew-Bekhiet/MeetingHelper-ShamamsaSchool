@@ -101,3 +101,4 @@ lib/secrets.dart
 web/firebase-messaging-sw.js
 coverage/html/**
 coverage/lcov.info
+lib/firebase_options.dart
