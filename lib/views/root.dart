@@ -39,7 +39,7 @@ class _RootState extends State<Root>
   late final StreamSubscription<PendingDynamicLinkData>
       _dynamicLinksSubscription;
 
-  TabController? _tabController;
+  late final TabController _tabController;
   Timer? _keepAliveTimer;
   bool _timeout = false;
   bool _pushed = false;
@@ -57,14 +57,14 @@ class _RootState extends State<Root>
       BehaviorSubject<String>.seeded('');
 
   Future<void> addTap() async {
-    if (_tabController!.index == _tabController!.length - 2) {
+    if (_tabController.index == _tabController.length - 2) {
       if (User.instance.permissions.manageUsers ||
           User.instance.permissions.manageAllowedUsers) {
         unawaited(navigator.currentState!.pushNamed('Data/EditClass'));
       } else {
         unawaited(navigator.currentState!.pushNamed('Data/EditClass'));
       }
-    } else if (_tabController!.index == _tabController!.length - 1) {
+    } else if (_tabController.index == _tabController.length - 1) {
       unawaited(navigator.currentState!.pushNamed('Data/EditPerson'));
     } else {
       unawaited(
@@ -105,9 +105,9 @@ class _RootState extends State<Root>
             stream: _showSearch,
             builder: (context, data) => data.data!
                 ? AnimatedBuilder(
-                    animation: _tabController!,
+                    animation: _tabController,
                     builder: (context, child) =>
-                        _tabController!.index == 1 ? child! : Container(),
+                        _tabController.index == 1 ? child! : Container(),
                     child: IconButton(
                       icon: const Icon(Icons.filter_list),
                       onPressed: () async {
@@ -277,9 +277,9 @@ class _RootState extends State<Root>
             return FloatingActionButton(
               onPressed: addTap,
               child: AnimatedBuilder(
-                animation: _tabController!,
+                animation: _tabController,
                 builder: (context, _) => Icon(
-                  _tabController!.index == _tabController!.length - 2
+                  _tabController.index == _tabController.length - 2
                       ? Icons.group_add
                       : Icons.person_add,
                 ),
@@ -294,9 +294,9 @@ class _RootState extends State<Root>
         color: Theme.of(context).colorScheme.primary,
         shape: const CircularNotchedRectangle(),
         child: AnimatedBuilder(
-          animation: _tabController!,
+          animation: _tabController,
           builder: (context, _) {
-            if (_tabController!.index == _tabController!.length - 1) {
+            if (_tabController.index == _tabController.length - 1) {
               return StreamBuilder<List<Person>>(
                 stream: _personsOptions.objectsStream,
                 builder: (context, snapshot) {
@@ -309,7 +309,7 @@ class _RootState extends State<Root>
                   );
                 },
               );
-            } else if (_tabController!.index == _tabController!.length - 2) {
+            } else if (_tabController.index == _tabController.length - 2) {
               return StreamBuilder<Map<PreferredStudyYear?, List<DataObject>>>(
                 stream: _servicesOptions.groupedObjectsStream,
                 builder: (context, snapshot) {
