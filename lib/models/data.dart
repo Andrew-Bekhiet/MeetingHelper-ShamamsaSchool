@@ -1,5 +1,7 @@
 export 'data/class.dart';
+export 'data/curriculum_stage.dart';
 export 'data/exam.dart';
+export 'data/hymn.dart';
 export 'data/invitation.dart';
 export 'data/person.dart';
 export 'data/service.dart';

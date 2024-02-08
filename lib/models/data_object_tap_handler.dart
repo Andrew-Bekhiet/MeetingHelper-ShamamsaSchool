@@ -17,6 +17,14 @@ class MHViewableObjectService extends DefaultViewableObjectService {
     }
   }
 
+  void curriculumStageTap(CurriculumStage stage) {
+    navigator.pushNamed('CurriculumStageInfo', arguments: stage);
+  }
+
+  void hymnTap(Hymn hymn) {
+    navigator.pushNamed('HymnInfo', arguments: hymn);
+  }
+
   void classTap(Class _class) {
     navigator.pushNamed('ClassInfo', arguments: _class);
   }
@@ -145,6 +153,10 @@ class MHViewableObjectService extends DefaultViewableObjectService {
       personTap(object);
     } else if (object is UserWithPerson) {
       userTap(object);
+    } else if (object is CurriculumStage) {
+      curriculumStageTap(object);
+    } else if (object is Hymn) {
+      hymnTap(object);
     } else if (object is HistoryDayBase) {
       historyTap(object);
     } else if (object is QueryInfo) {

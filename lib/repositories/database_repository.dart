@@ -1,6 +1,7 @@
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/models.dart';
+import 'package:meetinghelper/repositories/database/curricula_stages.dart';
 
 import 'database/classes.dart';
 import 'database/exams.dart';
@@ -17,6 +18,7 @@ class MHDatabaseRepo extends DatabaseRepository {
   late final classes = Classes(this);
   late final services = Services(this);
   late final exams = Exams(this);
+  late final curriculaStages = CurriculaStages(this);
 
   @override
   Future<Viewable?> getObjectFromLink(Uri deepLink) async {

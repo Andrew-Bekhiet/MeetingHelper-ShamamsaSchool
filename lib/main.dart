@@ -111,6 +111,8 @@ Future<void> initMeetingHelper() async {
     },
   );
 
+  GetIt.I.registerSingleton<FileDownloadService>(FileDownloadService());
+
   final mhDataObjectTapHandler = MHViewableObjectService(navigator);
   GetIt.I
       .registerSingleton<DefaultViewableObjectService>(mhDataObjectTapHandler);
@@ -396,6 +398,13 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
                               as Json)['showMotherAndFatherPhones'] ??
                           false)
                       : ModalRoute.of(context)!.settings.arguments is Person,
+                ),
+            'CurriculumStageInfo': (context) => CurriculumStageInfo(
+                  curriculum: ModalRoute.of(context)!.settings.arguments!
+                      as CurriculumStage,
+                ),
+            'HymnInfo': (context) => HymnInfo(
+                  hymn: ModalRoute.of(context)!.settings.arguments! as Hymn,
                 ),
             'UserInfo': (context) => UserInfo(
                   user: ModalRoute.of(context)!.settings.arguments!

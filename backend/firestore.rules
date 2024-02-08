@@ -665,6 +665,46 @@ service cloud.firestore {
       }
     }
 
+    match /CurriculaStages {
+      allow read: if checkUserRegistered();
+      allow write: if checkUserRegistered() && request.auth.token.curriculaAdmin;
+
+      match /{item} {
+        allow read: if checkUserRegistered();
+        allow write: if checkUserRegistered() && request.auth.token.curriculaAdmin;
+      }
+    }
+
+    match /Hymns {
+      allow read: if checkUserRegistered();
+      allow write: if checkUserRegistered() && request.auth.token.curriculaAdmin;
+
+      match /{item} {
+        allow read: if checkUserRegistered();
+        allow write: if checkUserRegistered() && request.auth.token.curriculaAdmin;
+      }
+    }
+
+    match /Liturgy {
+      allow read: if checkUserRegistered();
+      allow write: if checkUserRegistered() && request.auth.token.curriculaAdmin;
+
+      match /{item} {
+        allow read: if checkUserRegistered();
+        allow write: if checkUserRegistered() && request.auth.token.curriculaAdmin;
+      }
+    }
+
+    match /CopticLanguage {
+      allow read: if checkUserRegistered();
+      allow write: if checkUserRegistered() && request.auth.token.curriculaAdmin;
+
+      match /{item} {
+        allow read: if checkUserRegistered();
+        allow write: if checkUserRegistered() && request.auth.token.curriculaAdmin;
+      }
+    }
+
     match /Fathers {
       allow read: if checkUserRegistered();
       allow write: if checkUserRegistered()

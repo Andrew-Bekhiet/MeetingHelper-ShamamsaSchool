@@ -1,3 +1,4 @@
+export 'services/file_download_service.dart';
 export 'services/functions_service.dart';
 export 'services/notifications_service.dart';
 export 'services/share_service.dart';

@@ -56,36 +56,36 @@ class _RootState extends State<Root>
   final BehaviorSubject<String> _searchQuery =
       BehaviorSubject<String>.seeded('');
 
-  Future<void> addTap() async {
-    if (_tabController.index == _tabController.length - 2) {
+  void addTap() {
+    if (_tabController.index == _tabController.length - 3) {
+      return;
+    } else if (_tabController.index == _tabController.length - 2) {
       if (User.instance.permissions.manageUsers ||
           User.instance.permissions.manageAllowedUsers) {
-        unawaited(navigator.currentState!.pushNamed('Data/EditClass'));
+        navigator.currentState!.pushNamed('Data/EditClass');
       } else {
-        unawaited(navigator.currentState!.pushNamed('Data/EditClass'));
+        navigator.currentState!.pushNamed('Data/EditClass');
       }
     } else if (_tabController.index == _tabController.length - 1) {
-      unawaited(navigator.currentState!.pushNamed('Data/EditPerson'));
+      navigator.currentState!.pushNamed('Data/EditPerson');
     } else {
-      unawaited(
-        navigator.currentState!.push(
-          MaterialPageRoute(
-            builder: (context) {
-              return EditPerson(
-                person: Person(
-                  ref: GetIt.I<DatabaseRepository>()
-                      .collection('UsersData')
-                      .doc(),
-                ),
-              );
-            },
-          ),
+      navigator.currentState!.push(
+        MaterialPageRoute(
+          builder: (context) {
+            return EditPerson(
+              person: Person(
+                ref:
+                    GetIt.I<DatabaseRepository>().collection('UsersData').doc(),
+              ),
+            );
+          },
         ),
       );
     }
   }
 
   late final ServicesListController _servicesOptions;
+  late final ListController<void, CurriculumStage> _curriculaOptions;
   late final ListController<void, Person> _personsOptions;
   late final ListController<Class?, UserWithPerson> _usersOptions;
 
@@ -213,8 +213,13 @@ class _RootState extends State<Root>
                 icon: const Icon(Icons.person),
               ),
             Tab(
+              key: _createOrGetFeatureKey('Curricula'),
+              text: 'المناهج',
+              icon: const Icon(Icons.library_books),
+            ),
+            Tab(
               key: _createOrGetFeatureKey('Services'),
-              text: 'المراحل الدراسية',
+              text: 'المراحل',
               icon: const Icon(Icons.group),
             ),
             Tab(
@@ -281,7 +286,9 @@ class _RootState extends State<Root>
                 builder: (context, _) => Icon(
                   _tabController.index == _tabController.length - 2
                       ? Icons.group_add
-                      : Icons.person_add,
+                      : _tabController.index == _tabController.length - 3
+                          ? Icons.library_add
+                          : Icons.person_add,
                 ),
               ),
             );
@@ -328,6 +335,19 @@ class _RootState extends State<Root>
                   );
                 },
               );
+            } else if (_tabController.index == _tabController.length - 3) {
+              return StreamBuilder<List<CurriculumStage>>(
+                stream: _curriculaOptions.objectsStream,
+                builder: (context, snapshot) {
+                  return Text(
+                    (snapshot.data?.length ?? 0).toString() + 'منهج',
+                    textAlign: TextAlign.center,
+                    strutStyle:
+                        StrutStyle(height: IconTheme.of(context).size! / 7.5),
+                    style: Theme.of(context).primaryTextTheme.bodyLarge,
+                  );
+                },
+              );
             }
 
             return StreamBuilder<List<UserWithPerson>>(
@@ -356,6 +376,18 @@ class _RootState extends State<Root>
               controller: _usersOptions,
               onTap: GetIt.I<MHViewableObjectService>().personTap,
             ),
+          DataObjectListView<void, CurriculumStage>(
+            key: const PageStorageKey('mainCurriculaList'),
+            autoDisposeController: false,
+            controller: _curriculaOptions,
+            itemBuilder: (c, {onLongPress, onTap, subtitle, trailing}) =>
+                ViewableObjectWidget(
+              c,
+              onTap: () => onTap!(c),
+              onLongPress: () => onLongPress!(c),
+              trailing: trailing,
+            ),
+          ),
           ServicesList(
             key: const PageStorageKey('mainClassesList'),
             autoDisposeController: false,
@@ -1049,16 +1081,25 @@ class _RootState extends State<Root>
       ),
     );
 
+    _curriculaOptions = ListController<void, CurriculumStage>(
+      searchStream: _searchQuery,
+      //Listen to Ordering options and combine it
+      //with the Data Stream from Firestore
+      objectsPaginatableStream: PaginatableStream.loadAll(
+        stream: MHDatabaseRepo.instance.curriculaStages.getAll(),
+      ),
+    );
+
     _tabController = TabController(
       vsync: this,
       initialIndex: User.instance.permissions.manageUsers ||
               User.instance.permissions.manageAllowedUsers
-          ? 1
-          : 0,
+          ? 2
+          : 1,
       length: User.instance.permissions.manageUsers ||
               User.instance.permissions.manageAllowedUsers
-          ? 3
-          : 2,
+          ? 4
+          : 3,
     );
     WidgetsBinding.instance.addObserver(this);
     _keepAlive(true);
