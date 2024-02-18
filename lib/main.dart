@@ -111,7 +111,7 @@ Future<void> initMeetingHelper() async {
     },
   );
 
-  GetIt.I.registerSingleton<FileDownloadService>(FileDownloadService());
+  GetIt.I.registerSingleton<FileDownloadService>(const FileDownloadService());
 
   final mhDataObjectTapHandler = MHViewableObjectService(navigator);
   GetIt.I
