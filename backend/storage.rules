@@ -121,6 +121,9 @@ service firebase.storage {
     match /Hymns/{any} {
       allow read, write: if checkUserRegistered();
     }
+    match /Liturgy/{any} {
+      allow read, write: if checkUserRegistered();
+    }
 
     match /Deleted/{any=**} {
       allow read, write: if checkUserRegistered();
