@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:churchdata_core/churchdata_core.dart';
+import 'package:firebase_storage/firebase_storage.dart' hide Reference;
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as p;
@@ -11,12 +12,7 @@ import 'package:permission_handler/permission_handler.dart';
 class FileDownloadService {
   const FileDownloadService();
 
-  Future<void> openOrDownloadFileWithProgress(
-    BuildContext context,
-    Reference reference,
-  ) async {
-    await Permission.storage.request();
-
+  Future<File> _getFileForResource(Reference reference) async {
     final downloadsPath = await getDownloadsDirectory();
     final filePath = p.join(
       downloadsPath!.path,
@@ -25,6 +21,23 @@ class FileDownloadService {
     );
 
     final file = File(filePath);
+    return file;
+  }
+
+  Future<bool> resourceExistsOnDevice(Reference reference) async {
+    final File file = await _getFileForResource(reference);
+
+    return file.existsSync();
+  }
+
+  Future<void> openOrDownloadFileWithProgress(
+    BuildContext context,
+    Reference reference,
+  ) async {
+    await Permission.storage.request();
+
+    final file = await _getFileForResource(reference);
+
     if (!file.existsSync()) {
       await file.create(recursive: true);
 
@@ -68,7 +81,72 @@ class FileDownloadService {
     }
 
     if (file.existsSync()) {
-      unawaited(OpenFile.open(filePath));
+      unawaited(OpenFile.open(file.path));
     }
+  }
+}
+
+/// A method returns a human readable string representing a file _size
+String filesize(dynamic size, [int round = 2]) {
+  /** 
+   * [size] can be passed as number or as string
+   *
+   * the optional parameter [round] specifies the number 
+   * of digits after comma/point (default is 2)
+   */
+  const divider = 1024;
+  int _size;
+  try {
+    _size = int.parse(size.toString());
+  } catch (e) {
+    throw ArgumentError('Can not parse the size parameter: $e');
+  }
+
+  if (_size < divider) {
+    return '$_size B';
+  }
+
+  if (_size < divider * divider && _size % divider == 0) {
+    return '${(_size / divider).toStringAsFixed(0)} KB';
+  }
+
+  if (_size < divider * divider) {
+    return '${(_size / divider).toStringAsFixed(round)} KB';
+  }
+
+  if (_size < divider * divider * divider && _size % divider == 0) {
+    return '${(_size / (divider * divider)).toStringAsFixed(0)} MB';
+  }
+
+  if (_size < divider * divider * divider) {
+    return '${(_size / divider / divider).toStringAsFixed(round)} MB';
+  }
+
+  if (_size < divider * divider * divider * divider && _size % divider == 0) {
+    return '${(_size / (divider * divider * divider)).toStringAsFixed(0)} GB';
+  }
+
+  if (_size < divider * divider * divider * divider) {
+    return '${(_size / divider / divider / divider).toStringAsFixed(round)} GB';
+  }
+
+  if (_size < divider * divider * divider * divider * divider &&
+      _size % divider == 0) {
+    final num r = _size / divider / divider / divider / divider;
+    return '${r.toStringAsFixed(0)} TB';
+  }
+
+  if (_size < divider * divider * divider * divider * divider) {
+    final num r = _size / divider / divider / divider / divider;
+    return '${r.toStringAsFixed(round)} TB';
+  }
+
+  if (_size < divider * divider * divider * divider * divider * divider &&
+      _size % divider == 0) {
+    final num r = _size / divider / divider / divider / divider / divider;
+    return '${r.toStringAsFixed(0)} PB';
+  } else {
+    final num r = _size / divider / divider / divider / divider / divider;
+    return '${r.toStringAsFixed(round)} PB';
   }
 }

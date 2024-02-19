@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:churchdata_core/churchdata_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' show DocumentReference;
 import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';

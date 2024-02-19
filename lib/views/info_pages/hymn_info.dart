@@ -2,12 +2,13 @@ import 'dart:async';
 
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:collection/collection.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/services/file_download_service.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class HymnInfo extends StatelessWidget {
@@ -82,10 +83,51 @@ class HymnInfo extends StatelessWidget {
                   ),
                 ),
                 if (hymn.textPDFResource != null)
-                  FilledButton.tonalIcon(
-                    icon: const Icon(Icons.file_open),
-                    label: const Text('فتح PDF'),
-                    onPressed: _openPDF(context),
+                  StreamBuilder(
+                    stream: Rx.combineLatest3(
+                      GetIt.I<FileDownloadService>()
+                          .resourceExistsOnDevice(hymn.textPDFReference!)
+                          .asStream()
+                          .startWith(false),
+                      hymn.textPDFReference!
+                          .getMetadata()
+                          .asStream()
+                          .map((m) => m.size)
+                          .startWith(null),
+                      Connectivity()
+                          .onConnectivityChanged
+                          .map((c) => c != ConnectivityResult.none)
+                          .startWith(false),
+                      (a, b, c) => (a, b, c),
+                    ),
+                    builder: (context, snapshot) {
+                      final bool isDownloaded = snapshot.data?.$1 ?? false;
+                      final int? sizeBytes = snapshot.data?.$2;
+                      final bool isConnected = snapshot.data?.$3 ?? false;
+
+                      return FilledButton.tonalIcon(
+                        icon: const Icon(Icons.file_open),
+                        label: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (isDownloaded)
+                              const Text('فتح PDF')
+                            else
+                              const Text('تنزيل PDF'),
+                            if (sizeBytes != null) ...[
+                              const SizedBox(width: 8),
+                              Text(
+                                '(${filesize(sizeBytes)})',
+                                style: Theme.of(context).textTheme.labelSmall,
+                              ),
+                            ],
+                          ],
+                        ),
+                        onPressed: isDownloaded || isConnected
+                            ? _openPDF(context)
+                            : null,
+                      );
+                    },
                   ),
               ],
             ),
@@ -98,7 +140,7 @@ class HymnInfo extends StatelessWidget {
   VoidCallback _openPDF(BuildContext context) {
     return () => GetIt.I<FileDownloadService>().openOrDownloadFileWithProgress(
           context,
-          FirebaseStorage.instance.ref(hymn.textPDFResource),
+          hymn.textPDFReference!,
         );
   }
 }

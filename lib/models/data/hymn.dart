@@ -15,6 +15,10 @@ class Hymn extends DataObject {
   final String? mediaLink;
   final List<JsonRef> studyYears;
 
+  Reference? get textPDFReference => textPDFResource != null
+      ? GetIt.I<StorageRepository>().ref(textPDFResource)
+      : null;
+
   const Hymn({
     required JsonRef ref,
     required String name,
