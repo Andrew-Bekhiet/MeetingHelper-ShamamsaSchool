@@ -54,13 +54,13 @@ class CurriculumStageInfo extends StatelessWidget {
 
                 return Card(
                   child: ListTile(
-                    onTap: _onCategoryTap(context, category.$1, query),
+                    onTap: _onCategoryTap(context, category, query),
                     title: Text(category.$1),
                     subtitle: FutureBuilder<AggregateQuerySnapshot>(
                       future: query.count().get(),
                       builder: (context, snapshot) {
                         if (snapshot.hasError) {
-                          return ErrorWidget(snapshot.error!);
+                          return const SizedBox.shrink();
                         }
                         if (!snapshot.hasData) {
                           return const LinearProgressIndicator();
@@ -82,17 +82,23 @@ class CurriculumStageInfo extends StatelessWidget {
 
   void Function() _onCategoryTap(
     BuildContext context,
-    String title,
+    (String, String) category,
     QueryOfJson query,
   ) {
     return () => Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => CurriculumLessons(
-              title: title,
+              title: category.$1,
               controller: ListControllerBase(
                 objectsPaginatableStream: PaginatableStream.query(
                   query: query.orderBy('Name'),
-                  mapper: Hymn.fromQueryDoc,
+                  mapper: switch (category.$2) {
+                    'Hymns' => Hymn.fromQueryDoc,
+                    'Liturgy' => Liturgy.fromQueryDoc,
+                    // 'CopticLanguage' => CopticLanguage.fromQueryDoc,
+                    _ => Hymn.fromQueryDoc,
+                    // _ => throw UnimplementedError()
+                  },
                 ),
               ),
             ),

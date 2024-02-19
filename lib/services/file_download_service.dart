@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:churchdata_core/churchdata_core.dart';
-import 'package:firebase_storage/firebase_storage.dart' hide Reference;
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:get_it/get_it.dart';
+import 'package:meetinghelper/utils/helpers.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -20,8 +22,7 @@ class FileDownloadService {
       p.basename(reference.fullPath),
     );
 
-    final file = File(filePath);
-    return file;
+    return File(filePath);
   }
 
   Future<bool> resourceExistsOnDevice(Reference reference) async {
@@ -39,45 +40,65 @@ class FileDownloadService {
     final file = await _getFileForResource(reference);
 
     if (!file.existsSync()) {
-      await file.create(recursive: true);
-
-      final downloadTask = reference.writeToFile(file);
-
-      unawaited(
-        showDialog(
-          context: context,
-          builder: (context) {
-            return StreamBuilder<TaskSnapshot>(
-              stream: downloadTask.snapshotEvents,
-              builder: (context, snapshot) {
-                if ({TaskState.success, TaskState.canceled, TaskState.error}
-                    .contains(snapshot.data?.state)) {
-                  WidgetsBinding.instance
-                      .addPostFrameCallback((_) => Navigator.pop(context));
-                }
-
-                return AlertDialog(
-                  title: const Text('جار التنزيل'),
-                  content: LinearProgressIndicator(
-                    value: (snapshot.data?.bytesTransferred ?? 0) /
-                        (snapshot.data?.totalBytes ?? 1),
-                  ),
-                );
-              },
-            );
-          },
-        ).then((_) {
-          if (downloadTask.snapshot.state == TaskState.running) {
-            file.delete();
-            downloadTask.cancel();
-          }
-        }),
+      final url = await reference.getCachedDownloadUrl(
+        onCacheChanged: (_, __) => reference.deleteCache(),
       );
 
-      await downloadTask.catchError((error) {
-        file.delete();
-        throw error;
-      });
+      final cacheManager = GetIt.I.isRegistered<BaseCacheManager>()
+          ? GetIt.I<BaseCacheManager>()
+          : DefaultCacheManager();
+
+      final downloadStream = cacheManager
+          .getFileStream(url, withProgress: true)
+          .asBroadcastStream();
+
+      final AsyncSnapshot<FileResponse>? lastSnapshot = await showDialog(
+        context: context,
+        builder: (context) {
+          return StreamBuilder<FileResponse>(
+            stream: downloadStream,
+            builder: (context, snapshot) {
+              if (snapshot.hasError || snapshot.data is FileInfo) {
+                WidgetsBinding.instance.addPostFrameCallback(
+                  (_) async => Navigator.of(context).pop(snapshot),
+                );
+
+                return const AlertDialog(
+                  title: Text('جار التنزيل'),
+                  content: LinearProgressIndicator(value: 1),
+                );
+              }
+
+              final progress = snapshot.data as DownloadProgress?;
+
+              return AlertDialog(
+                title: const Text('جار التنزيل'),
+                content: LinearProgressIndicator(
+                  value: progress?.progress,
+                ),
+              );
+            },
+          );
+        },
+      );
+
+      final lastSnapshotData = lastSnapshot?.data;
+
+      if (lastSnapshotData is FileInfo) {
+        await file.create(recursive: true);
+        await lastSnapshotData.file.copy(file.path);
+      } else {
+        await reference.deleteCache();
+
+        if (lastSnapshot?.hasError ?? false) {
+          unawaited(
+            showErrorDialog(
+              context,
+              'حدث خطأ أثناء تنزيل الملف',
+            ),
+          );
+        }
+      }
     }
 
     if (file.existsSync()) {

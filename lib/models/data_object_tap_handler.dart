@@ -25,6 +25,10 @@ class MHViewableObjectService extends DefaultViewableObjectService {
     navigator.pushNamed('HymnInfo', arguments: hymn);
   }
 
+  void liturgyTap(Liturgy liturgy) {
+    navigator.pushNamed('LiturgyInfo', arguments: liturgy);
+  }
+
   void classTap(Class _class) {
     navigator.pushNamed('ClassInfo', arguments: _class);
   }
@@ -157,6 +161,8 @@ class MHViewableObjectService extends DefaultViewableObjectService {
       curriculumStageTap(object);
     } else if (object is Hymn) {
       hymnTap(object);
+    } else if (object is Liturgy) {
+      liturgyTap(object);
     } else if (object is HistoryDayBase) {
       historyTap(object);
     } else if (object is QueryInfo) {

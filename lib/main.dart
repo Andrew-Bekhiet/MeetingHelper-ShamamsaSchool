@@ -406,6 +406,10 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
             'HymnInfo': (context) => HymnInfo(
                   hymn: ModalRoute.of(context)!.settings.arguments! as Hymn,
                 ),
+            'LiturgyInfo': (context) => LiturgyInfo(
+                  liturgy:
+                      ModalRoute.of(context)!.settings.arguments! as Liturgy,
+                ),
             'UserInfo': (context) => UserInfo(
                   user: ModalRoute.of(context)!.settings.arguments!
                       as UserWithPerson,
