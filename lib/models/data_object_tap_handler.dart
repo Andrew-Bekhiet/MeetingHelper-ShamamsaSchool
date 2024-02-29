@@ -29,6 +29,10 @@ class MHViewableObjectService extends DefaultViewableObjectService {
     navigator.pushNamed('LiturgyInfo', arguments: liturgy);
   }
 
+  void copticLanguageTap(CopticLanguage copticLanguage) {
+    navigator.pushNamed('CopticLanguageInfo', arguments: copticLanguage);
+  }
+
   void classTap(Class _class) {
     navigator.pushNamed('ClassInfo', arguments: _class);
   }
@@ -163,6 +167,8 @@ class MHViewableObjectService extends DefaultViewableObjectService {
       hymnTap(object);
     } else if (object is Liturgy) {
       liturgyTap(object);
+    } else if (object is CopticLanguage) {
+      copticLanguageTap(object);
     } else if (object is HistoryDayBase) {
       historyTap(object);
     } else if (object is QueryInfo) {

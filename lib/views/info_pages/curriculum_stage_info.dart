@@ -95,9 +95,8 @@ class CurriculumStageInfo extends StatelessWidget {
                   mapper: switch (category.$2) {
                     'Hymns' => Hymn.fromQueryDoc,
                     'Liturgy' => Liturgy.fromQueryDoc,
-                    // 'CopticLanguage' => CopticLanguage.fromQueryDoc,
-                    _ => Hymn.fromQueryDoc,
-                    // _ => throw UnimplementedError()
+                    'CopticLanguage' => CopticLanguage.fromQueryDoc,
+                    _ => throw UnimplementedError()
                   },
                 ),
               ),

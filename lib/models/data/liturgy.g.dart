@@ -13,6 +13,8 @@ abstract class _$LiturgyCWProxy {
 
   Liturgy resources(List<String> resources);
 
+  Liturgy studyYears(List<DocumentReference<Map<String, dynamic>>> studyYears);
+
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `Liturgy(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
   ///
   /// Usage
@@ -23,6 +25,7 @@ abstract class _$LiturgyCWProxy {
     DocumentReference<Map<String, dynamic>>? ref,
     String? name,
     List<String>? resources,
+    List<DocumentReference<Map<String, dynamic>>>? studyYears,
   });
 }
 
@@ -42,6 +45,11 @@ class _$LiturgyCWProxyImpl implements _$LiturgyCWProxy {
   Liturgy resources(List<String> resources) => this(resources: resources);
 
   @override
+  Liturgy studyYears(
+          List<DocumentReference<Map<String, dynamic>>> studyYears) =>
+      this(studyYears: studyYears);
+
+  @override
 
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `Liturgy(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
   ///
@@ -53,6 +61,7 @@ class _$LiturgyCWProxyImpl implements _$LiturgyCWProxy {
     Object? ref = const $CopyWithPlaceholder(),
     Object? name = const $CopyWithPlaceholder(),
     Object? resources = const $CopyWithPlaceholder(),
+    Object? studyYears = const $CopyWithPlaceholder(),
   }) {
     return Liturgy(
       ref: ref == const $CopyWithPlaceholder() || ref == null
@@ -67,6 +76,11 @@ class _$LiturgyCWProxyImpl implements _$LiturgyCWProxy {
           ? _value.resources
           // ignore: cast_nullable_to_non_nullable
           : resources as List<String>,
+      studyYears:
+          studyYears == const $CopyWithPlaceholder() || studyYears == null
+              ? _value.studyYears
+              // ignore: cast_nullable_to_non_nullable
+              : studyYears as List<DocumentReference<Map<String, dynamic>>>,
     );
   }
 }

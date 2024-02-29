@@ -1,4 +1,5 @@
 export 'data/class.dart';
+export 'data/coptic_language.dart';
 export 'data/curriculum_stage.dart';
 export 'data/exam.dart';
 export 'data/hymn.dart';

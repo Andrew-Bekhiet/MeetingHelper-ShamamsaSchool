@@ -410,6 +410,10 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
                   liturgy:
                       ModalRoute.of(context)!.settings.arguments! as Liturgy,
                 ),
+            'CopticLanguageInfo': (context) => CopticLanguageInfo(
+                  copticLanguage: ModalRoute.of(context)!.settings.arguments!
+                      as CopticLanguage,
+                ),
             'UserInfo': (context) => UserInfo(
                   user: ModalRoute.of(context)!.settings.arguments!
                       as UserWithPerson,
