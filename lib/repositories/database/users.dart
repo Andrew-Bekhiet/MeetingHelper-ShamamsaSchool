@@ -171,13 +171,13 @@ class Users {
             (user) => user.permissions.superAccess
                 ? repository
                     .collection('Classes')
-                    .orderBy('StudyYear')
+                    .orderBy('StudyYearFrom')
                     .orderBy('Gender')
                     .snapshots()
                 : repository
                     .collection('Classes')
                     .where('Allowed', arrayContains: user.uid)
-                    .orderBy('StudyYear')
+                    .orderBy('StudyYearFrom')
                     .orderBy('Gender')
                     .snapshots(),
           ),
