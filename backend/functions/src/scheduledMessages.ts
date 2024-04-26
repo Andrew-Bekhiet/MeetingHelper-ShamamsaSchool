@@ -130,7 +130,7 @@ export const sendMerryChristmasMessage = pubsub
   });
 
 export const sendHappyRiseMessage = pubsub
-  .schedule("0 0 16 4 *")
+  .schedule("0 0 5 5 *")
   .timeZone("Africa/Cairo")
   .onRun(async () => {
     let usersToSend: string[] = [];
