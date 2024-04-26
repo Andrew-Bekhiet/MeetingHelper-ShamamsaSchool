@@ -456,7 +456,7 @@ export const importFromExcel = runWith({
     if (!(await file.exists()))
       throw new https.HttpsError("not-found", "File doesnot exist");
     if (
-      (await file.getMetadata())[0]["metadata"]["createdBy"] !==
+      (await file.getMetadata())?.[0]?.["metadata"]?.["createdBy"] !==
       context.auth.uid
     )
       throw new https.HttpsError("permission-denied", "");
