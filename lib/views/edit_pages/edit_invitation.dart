@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/widgets/search_filters.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -486,7 +487,7 @@ class _EditInvitationState extends State<EditInvitation> {
           duration: Duration(seconds: 15),
         ),
       );
-      if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
+      if ((await Connectivity().checkConnectivity()).isConnected) {
         await invitation.ref.delete();
       } else {
         // ignore: unawaited_futures
@@ -514,7 +515,7 @@ class _EditInvitationState extends State<EditInvitation> {
   }
 
   Future save() async {
-    if (await Connectivity().checkConnectivity() == ConnectivityResult.none) {
+    if (!(await Connectivity().checkConnectivity()).isConnected) {
       await showDialog(
         context: context,
         builder: (context) =>
@@ -537,8 +538,7 @@ class _EditInvitationState extends State<EditInvitation> {
             GetIt.I<DatabaseRepository>().collection('Invitations').doc(),
           );
           invitation = invitation.copyWith.generatedBy(User.instance.uid);
-          if (await Connectivity().checkConnectivity() !=
-              ConnectivityResult.none) {
+          if ((await Connectivity().checkConnectivity()).isConnected) {
             await invitation.ref.set({
               ...invitation.toJson(),
               'GeneratedOn': FieldValue.serverTimestamp(),
@@ -556,8 +556,7 @@ class _EditInvitationState extends State<EditInvitation> {
               (key, value) => widget.invitation.toJson()[key] == value,
             );
           if (update.isNotEmpty) {
-            if (await Connectivity().checkConnectivity() !=
-                ConnectivityResult.none) {
+            if ((await Connectivity().checkConnectivity()).isConnected) {
               await invitation.update(old: update);
             } else {
               // ignore: unawaited_futures

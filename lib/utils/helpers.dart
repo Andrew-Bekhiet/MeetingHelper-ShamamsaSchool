@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:churchdata_core/churchdata_core.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/material.dart' hide Notification;
@@ -272,4 +273,12 @@ extension LocationDataX on LocationData {
         ? LatLng(latitude!, longitude!)
         : null;
   }
+}
+
+extension IsConnected on List<ConnectivityResult> {
+  bool get isConnected =>
+      contains(ConnectivityResult.wifi) ||
+      contains(ConnectivityResult.mobile) ||
+      contains(ConnectivityResult.ethernet) ||
+      contains(ConnectivityResult.mobile);
 }

@@ -11,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/views.dart';
 import 'package:meetinghelper/widgets.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -379,7 +380,7 @@ class _EditClassState extends State<EditClass> {
           duration: Duration(seconds: 2),
         ),
       );
-      if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
+      if ((await Connectivity().checkConnectivity()).isConnected) {
         await class$.ref.delete();
       } else {
         // ignore: unawaited_futures
@@ -433,16 +434,13 @@ class _EditClassState extends State<EditClass> {
         class$ = class$.copyWith
             .lastEdit(LastEdit(User.instance.uid, DateTime.now()));
 
-        if (update &&
-            await Connectivity().checkConnectivity() !=
-                ConnectivityResult.none) {
+        if (update && (await Connectivity().checkConnectivity()).isConnected) {
           await class$.update(old: widget.class$?.toJson() ?? {});
         } else if (update) {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
           class$.update(old: widget.class$?.toJson() ?? {});
-        } else if (await Connectivity().checkConnectivity() !=
-            ConnectivityResult.none) {
+        } else if ((await Connectivity().checkConnectivity()).isConnected) {
           await class$.set();
         } else {
           //Intentionally unawaited because of no internet connection

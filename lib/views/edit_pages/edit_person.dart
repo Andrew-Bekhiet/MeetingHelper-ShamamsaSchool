@@ -15,6 +15,7 @@ import 'package:meetinghelper/controllers.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/views.dart';
 import 'package:meetinghelper/widgets.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -1155,7 +1156,7 @@ class _EditPersonState extends State<EditPerson> {
           ),
         ) ==
         true) {
-      if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
+      if ((await Connectivity().checkConnectivity()).isConnected) {
         await person.ref.delete();
       } else {
         // ignore: unawaited_futures
@@ -1238,9 +1239,7 @@ class _EditPersonState extends State<EditPerson> {
               .college(isCollegeYear ? person.college : null);
         }
 
-        if (update &&
-            await Connectivity().checkConnectivity() !=
-                ConnectivityResult.none) {
+        if (update && (await Connectivity().checkConnectivity()).isConnected) {
           if (person.ref.parent.id == 'UsersData') {
             await person.ref.update(
               {
@@ -1264,8 +1263,7 @@ class _EditPersonState extends State<EditPerson> {
           } else {
             unawaited(person.update(old: widget.person?.toJson() ?? {}));
           }
-        } else if (await Connectivity().checkConnectivity() !=
-            ConnectivityResult.none) {
+        } else if ((await Connectivity().checkConnectivity()).isConnected) {
           if (person.ref.parent.id == 'UsersData') {
             await person.ref.set(
               {

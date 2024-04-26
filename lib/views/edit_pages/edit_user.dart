@@ -807,7 +807,7 @@ class _EditUserState extends State<EditUser> {
   }
 
   Future save() async {
-    if (await Connectivity().checkConnectivity() == ConnectivityResult.none) {
+    if (!(await Connectivity().checkConnectivity()).isConnected) {
       await showDialog(
         context: context,
         builder: (context) =>

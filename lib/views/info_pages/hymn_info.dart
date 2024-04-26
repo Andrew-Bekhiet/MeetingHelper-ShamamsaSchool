@@ -8,6 +8,7 @@ import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:get_it/get_it.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/services/file_download_service.dart';
+import 'package:meetinghelper/utils/helpers.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -96,7 +97,7 @@ class HymnInfo extends StatelessWidget {
                           .startWith(null),
                       Connectivity()
                           .onConnectivityChanged
-                          .map((c) => c != ConnectivityResult.none)
+                          .map((c) => c.isConnected)
                           .startWith(false),
                       (a, b, c) => (a, b, c),
                     ),
