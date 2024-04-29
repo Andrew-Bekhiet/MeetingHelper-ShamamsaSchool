@@ -3,7 +3,7 @@ export 'views/auth_screen.dart';
 export 'views/day.dart';
 export 'views/edit_pages.dart';
 export 'views/edit_users.dart';
-export 'views/exams_page.dart';
+export 'views/exams_scores.dart';
 export 'views/exports.dart';
 export 'views/history.dart';
 export 'views/info_pages.dart';

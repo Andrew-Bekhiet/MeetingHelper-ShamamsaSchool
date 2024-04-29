@@ -2,6 +2,7 @@ import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:intl/intl.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/services.dart';
@@ -453,54 +454,10 @@ class _PersonInfoState extends State<PersonInfo> {
                 ),
                 CopiablePropertyWidget('ملاحظات', person.notes),
                 const Divider(thickness: 1),
-                StreamBuilder<List<Exam>>(
-                  stream: MHDatabaseRepo.I.exams.getAll(),
-                  builder: (context, snapshot) {
-                    if (snapshot.data?.isEmpty ?? true) return const SizedBox();
-
-                    final filteredExams = snapshot.data!
-                        .where((e) => person.examScores.containsKey(e.id));
-
-                    if (filteredExams.isEmpty) return const SizedBox();
-
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ...snapshot.data!
-                            .where((e) => person.examScores.containsKey(e.id))
-                            .map(
-                              (e) => ListTile(
-                                title: Text(e.name),
-                                subtitle: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        person.examScores[e.id]!.toString() +
-                                            '/' +
-                                            e.max.toString() +
-                                            '\t\t\t' +
-                                            (100 *
-                                                    person.examScores[e.id]! ~/
-                                                    e.max)
-                                                .toString() +
-                                            '%',
-                                      ),
-                                    ),
-                                    if (e.time != null)
-                                      Text(
-                                        DateFormat('yyyy/M/d').format(e.time!),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .labelSmall,
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                        const Divider(thickness: 1),
-                      ],
-                    );
-                  },
+                ElevatedButton.icon(
+                  icon: const Icon(Symbols.overview),
+                  label: const Text('نتائج الامتحانات'),
+                  onPressed: () => _showExamsScores(context, person),
                 ),
                 if (!person.ref.path.startsWith('Deleted'))
                   ElevatedButton.icon(
@@ -687,6 +644,10 @@ class _PersonInfoState extends State<PersonInfo> {
         Uri(scheme: 'tel', path: formatPhone(number ?? '', false)),
       );
     }
+  }
+
+  void _showExamsScores(BuildContext context, Person person) {
+    navigator.currentState!.pushNamed('ExamsScores', arguments: person);
   }
 
   void _showAnalytics(BuildContext context, Person person) {

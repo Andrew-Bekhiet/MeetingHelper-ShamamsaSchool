@@ -653,7 +653,23 @@ service cloud.firestore {
       }
     }
 
-    match /Exams {
+    match /ExamsScores {
+      allow read: if checkUserRegistered()
+        && (request.auth.token.superAccess || request.auth.uid in get(resource.data.ClassId).data.Allowed);
+      allow write: if checkUserRegistered()
+        && (request.auth.token.superAccess || request.auth.uid in get(resource.data.ClassId).data.Allowed)
+        && request.auth.token.write;
+      
+      match /{item} {
+        allow read: if checkUserRegistered()
+          && (request.auth.token.superAccess || request.auth.uid in get(resource.data.ClassId).data.Allowed);
+        allow write: if checkUserRegistered()
+          && (request.auth.token.superAccess || request.auth.uid in get(resource.data.ClassId).data.Allowed)
+          && request.auth.token.write;
+      }
+    }
+
+    match /Subjects {
       allow read: if checkUserRegistered();
       allow write: if checkUserRegistered()
         && request.auth.token.write;

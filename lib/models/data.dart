@@ -1,11 +1,12 @@
 export 'data/class.dart';
 export 'data/coptic_language.dart';
 export 'data/curriculum_stage.dart';
-export 'data/exam.dart';
+export 'data/exam_score.dart';
 export 'data/hymn.dart';
 export 'data/invitation.dart';
 export 'data/liturgy.dart';
 export 'data/person.dart';
 export 'data/service.dart';
+export 'data/subject.dart';
 export 'data/user.dart';
 export 'data/user_with_person.dart';

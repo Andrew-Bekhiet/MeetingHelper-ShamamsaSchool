@@ -85,6 +85,7 @@ dependencies:
   path: ^1.8.3
   flutter_linkify: ^6.0.0
   flutter_cache_manager: ^3.3.1
+  material_symbols_icons: ^4.2719.3
 
 dev_dependencies:
   flutter_test:

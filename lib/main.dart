@@ -306,227 +306,7 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
           ],
           title: 'خدمة مدرسة الشمامسة',
           initialRoute: '/',
-          routes: {
-            '/': buildLoadAppWidget,
-            'Login': (context) => const LoginScreen(),
-            'Data/EditClass': (context) => EditClass(
-                  class$: ModalRoute.of(context)!.settings.arguments as Class?,
-                ),
-            'Data/EditService': (context) => EditService(
-                  service:
-                      ModalRoute.of(context)!.settings.arguments as Service?,
-                ),
-            'Data/EditPerson': (context) {
-              if (ModalRoute.of(context)?.settings.arguments == null) {
-                return EditPerson(person: Person.empty());
-              } else if (ModalRoute.of(context)!.settings.arguments is Person) {
-                return EditPerson(
-                  person: ModalRoute.of(context)!.settings.arguments! as Person,
-                );
-              } else if (ModalRoute.of(context)!.settings.arguments
-                  is JsonRef) {
-                final parent =
-                    ModalRoute.of(context)!.settings.arguments! as JsonRef;
-                Person person = Person.empty();
-
-                if (parent.parent.id == 'Classes') {
-                  person = person.copyWith.classId(parent);
-                } else if (parent.parent.id == 'Services') {
-                  person = person.copyWith.services([parent]);
-                }
-
-                return EditPerson(person: person);
-              }
-              throw ArgumentError.value(
-                ModalRoute.of(context)!.settings.arguments,
-                'modal route args',
-                'passed arg is neither Person nor JsonRef',
-              );
-            },
-            'EditInvitation': (context) => EditInvitation(
-                  invitation: ModalRoute.of(context)?.settings.arguments
-                          as Invitation? ??
-                      Invitation.empty(),
-                ),
-            'Day': (context) {
-              if (ModalRoute.of(context)?.settings.arguments != null) {
-                return Day(
-                  record:
-                      ModalRoute.of(context)!.settings.arguments! as HistoryDay,
-                );
-              } else {
-                return Day(
-                  record: HistoryDay(),
-                );
-              }
-            },
-            'ServantsDay': (context) {
-              if (ModalRoute.of(context)?.settings.arguments != null) {
-                return Day(
-                  record: ModalRoute.of(context)!.settings.arguments!
-                      as ServantsHistoryDay,
-                );
-              } else {
-                return Day(
-                  record: ServantsHistoryDay(),
-                );
-              }
-            },
-            'Trash': (context) => const Trash(),
-            'History': (context) => const History(isServantsHistory: false),
-            'ExportOps': (context) => const Exports(),
-            'ServantsHistory': (context) =>
-                const History(isServantsHistory: true),
-            'MyAccount': (context) => const MyAccount(),
-            'Notifications': (context) => const NotificationsPage(),
-            'ClassInfo': (context) => ClassInfo(
-                  class$: ModalRoute.of(context)!.settings.arguments! as Class,
-                ),
-            'ServiceInfo': (context) => ServiceInfo(
-                  service:
-                      ModalRoute.of(context)!.settings.arguments! as Service,
-                ),
-            'PersonInfo': (context) => PersonInfo(
-                  person: ModalRoute.of(context)!.settings.arguments! is Person
-                      ? ModalRoute.of(context)!.settings.arguments!
-                      : (ModalRoute.of(context)!.settings.arguments!
-                          as Json)['Person'],
-                  showMotherAndFatherPhones: ModalRoute.of(context)!
-                          .settings
-                          .arguments is Map
-                      ? ((ModalRoute.of(context)!.settings.arguments!
-                              as Json)['showMotherAndFatherPhones'] ??
-                          false)
-                      : ModalRoute.of(context)!.settings.arguments is Person,
-                ),
-            'CurriculumStageInfo': (context) => CurriculumStageInfo(
-                  curriculum: ModalRoute.of(context)!.settings.arguments!
-                      as CurriculumStage,
-                ),
-            'HymnInfo': (context) => HymnInfo(
-                  hymn: ModalRoute.of(context)!.settings.arguments! as Hymn,
-                ),
-            'LiturgyInfo': (context) => LiturgyInfo(
-                  liturgy:
-                      ModalRoute.of(context)!.settings.arguments! as Liturgy,
-                ),
-            'CopticLanguageInfo': (context) => CopticLanguageInfo(
-                  copticLanguage: ModalRoute.of(context)!.settings.arguments!
-                      as CopticLanguage,
-                ),
-            'UserInfo': (context) => UserInfo(
-                  user: ModalRoute.of(context)!.settings.arguments!
-                      as UserWithPerson,
-                ),
-            'InvitationInfo': (context) => InvitationInfo(
-                  invitation:
-                      ModalRoute.of(context)!.settings.arguments! as Invitation,
-                ),
-            'Update': (context) => const Update(),
-            'Search': (context) => const SearchQuery(),
-            'SearchQuery': (context) => SearchQuery(
-                  query:
-                      ModalRoute.of(context)!.settings.arguments as QueryInfo?,
-                ),
-            'DataMap': (context) => const MHMapView(),
-            'Settings': (context) => const Settings(),
-            'Settings/Churches': (context) => MiniModelList<Church>(
-                  title: 'الكنائس',
-                  transformer: Church.fromDoc,
-                  add: (context) => churchTap(
-                    context,
-                    Church.createNew(),
-                    true,
-                    canDelete: false,
-                  ),
-                  modify: churchTap,
-                  collection: GetIt.I<MHDatabaseRepo>().collection('Churches'),
-                ),
-            'Settings/Fathers': (context) => MiniModelList<Father>(
-                  title: 'الأباء الكهنة',
-                  transformer: Father.fromDoc,
-                  add: (context) => fatherTap(
-                    context,
-                    Father.createNew(),
-                    true,
-                    canDelete: false,
-                  ),
-                  modify: fatherTap,
-                  collection: GetIt.I<MHDatabaseRepo>().collection('Fathers'),
-                ),
-            'Settings/StudyYears': (context) => MiniModelList<StudyYear>(
-                  title: 'السنوات الدراسية',
-                  transformer: StudyYear.fromDoc,
-                  add: (context) => studyYearTap(
-                    context,
-                    StudyYear.createNew(),
-                    true,
-                    canDelete: false,
-                  ),
-                  modify: studyYearTap,
-                  completer: (q) => q.orderBy('Grade'),
-                  collection:
-                      GetIt.I<MHDatabaseRepo>().collection('StudyYears'),
-                ),
-            'Settings/Schools': (context) => MiniModelList<School>(
-                  transformer: School.fromDoc,
-                  collection: GetIt.I<MHDatabaseRepo>().collection('Schools'),
-                  title: 'المدارس',
-                ),
-            'Settings/Colleges': (context) => MiniModelList<College>(
-                  transformer: College.fromDoc,
-                  collection: GetIt.I<MHDatabaseRepo>().collection('Colleges'),
-                  title: 'الكليات',
-                ),
-            'UpdateUserDataError': (context) => const UpdateUserDataErrorPage(),
-            'ManageUsers': (context) => const UsersPage(),
-            'Invitations': (context) => const InvitationsPage(),
-            'ActivityAnalysis': (context) => ActivityAnalysis(
-                  parents: ModalRoute.of(context)?.settings.arguments
-                      as List<DataObject>?,
-                ),
-            'Analytics': (context) {
-              if (ModalRoute.of(context)!.settings.arguments is Person) {
-                return PersonAnalyticsPage(
-                  person: ModalRoute.of(context)!.settings.arguments! as Person,
-                );
-              } else if (ModalRoute.of(context)!.settings.arguments
-                  is DataObject) {
-                return AnalyticsPage(
-                  parents: [
-                    ModalRoute.of(context)!.settings.arguments! as DataObject,
-                  ],
-                );
-              } else if (ModalRoute.of(context)!.settings.arguments
-                  is HistoryDayBase) {
-                return AnalyticsPage(
-                  day: ModalRoute.of(context)!.settings.arguments!
-                      as HistoryDayBase,
-                );
-              } else {
-                final Json args =
-                    ModalRoute.of(context)!.settings.arguments! as Json;
-                return AnalyticsPage(
-                  historyColection: args['HistoryCollection'] ?? 'History',
-                  parents: args['Classes'],
-                  day: args['Day'],
-                  range: args['Range'],
-                );
-              }
-            },
-            'Exams': (context) {
-              return ExamsPage(
-                service: ModalRoute.of(context)!.settings.arguments! as Service,
-              );
-            },
-            'ExamInfo': (context) {
-              final map = ModalRoute.of(context)!.settings.arguments! as Json;
-              return ExamInfo(
-                exam: map['Exam'] as Exam,
-                service: map['Service'] as Service,
-              );
-            },
-          },
+          routes: {'/': buildLoadAppWidget, ...appRoutes},
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
@@ -546,3 +326,197 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
     );
   }
 }
+
+final appRoutes = {
+  'Login': (context) => const LoginScreen(),
+  'Data/EditClass': (context) => EditClass(
+        class$: ModalRoute.of(context)!.settings.arguments as Class?,
+      ),
+  'Data/EditService': (context) => EditService(
+        service: ModalRoute.of(context)!.settings.arguments as Service?,
+      ),
+  'Data/EditPerson': (context) {
+    if (ModalRoute.of(context)?.settings.arguments == null) {
+      return EditPerson(person: Person.empty());
+    } else if (ModalRoute.of(context)!.settings.arguments is Person) {
+      return EditPerson(
+        person: ModalRoute.of(context)!.settings.arguments! as Person,
+      );
+    } else if (ModalRoute.of(context)!.settings.arguments is JsonRef) {
+      final parent = ModalRoute.of(context)!.settings.arguments! as JsonRef;
+      Person person = Person.empty();
+
+      if (parent.parent.id == 'Classes') {
+        person = person.copyWith.classId(parent);
+      } else if (parent.parent.id == 'Services') {
+        person = person.copyWith.services([parent]);
+      }
+
+      return EditPerson(person: person);
+    }
+    throw ArgumentError.value(
+      ModalRoute.of(context)!.settings.arguments,
+      'modal route args',
+      'passed arg is neither Person nor JsonRef',
+    );
+  },
+  'EditInvitation': (context) => EditInvitation(
+        invitation: ModalRoute.of(context)?.settings.arguments as Invitation? ??
+            Invitation.empty(),
+      ),
+  'Day': (context) {
+    if (ModalRoute.of(context)?.settings.arguments != null) {
+      return Day(
+        record: ModalRoute.of(context)!.settings.arguments! as HistoryDay,
+      );
+    } else {
+      return Day(
+        record: HistoryDay(),
+      );
+    }
+  },
+  'ServantsDay': (context) {
+    if (ModalRoute.of(context)?.settings.arguments != null) {
+      return Day(
+        record:
+            ModalRoute.of(context)!.settings.arguments! as ServantsHistoryDay,
+      );
+    } else {
+      return Day(
+        record: ServantsHistoryDay(),
+      );
+    }
+  },
+  'Trash': (context) => const Trash(),
+  'History': (context) => const History(isServantsHistory: false),
+  'ExportOps': (context) => const Exports(),
+  'ServantsHistory': (context) => const History(isServantsHistory: true),
+  'MyAccount': (context) => const MyAccount(),
+  'Notifications': (context) => const NotificationsPage(),
+  'ClassInfo': (context) => ClassInfo(
+        class$: ModalRoute.of(context)!.settings.arguments! as Class,
+      ),
+  'ServiceInfo': (context) => ServiceInfo(
+        service: ModalRoute.of(context)!.settings.arguments! as Service,
+      ),
+  'PersonInfo': (context) => PersonInfo(
+        person: ModalRoute.of(context)!.settings.arguments! is Person
+            ? ModalRoute.of(context)!.settings.arguments!
+            : (ModalRoute.of(context)!.settings.arguments! as Json)['Person'],
+        showMotherAndFatherPhones:
+            ModalRoute.of(context)!.settings.arguments is Map
+                ? ((ModalRoute.of(context)!.settings.arguments!
+                        as Json)['showMotherAndFatherPhones'] ??
+                    false)
+                : ModalRoute.of(context)!.settings.arguments is Person,
+      ),
+  'CurriculumStageInfo': (context) => CurriculumStageInfo(
+        curriculum:
+            ModalRoute.of(context)!.settings.arguments! as CurriculumStage,
+      ),
+  'HymnInfo': (context) => HymnInfo(
+        hymn: ModalRoute.of(context)!.settings.arguments! as Hymn,
+      ),
+  'LiturgyInfo': (context) => LiturgyInfo(
+        liturgy: ModalRoute.of(context)!.settings.arguments! as Liturgy,
+      ),
+  'CopticLanguageInfo': (context) => CopticLanguageInfo(
+        copticLanguage:
+            ModalRoute.of(context)!.settings.arguments! as CopticLanguage,
+      ),
+  'UserInfo': (context) => UserInfo(
+        user: ModalRoute.of(context)!.settings.arguments! as UserWithPerson,
+      ),
+  'InvitationInfo': (context) => InvitationInfo(
+        invitation: ModalRoute.of(context)!.settings.arguments! as Invitation,
+      ),
+  'ExamsScores': (context) => ExamsScores(
+        person: ModalRoute.of(context)!.settings.arguments as Person?,
+      ),
+  'Update': (context) => const Update(),
+  'Search': (context) => const SearchQuery(),
+  'SearchQuery': (context) => SearchQuery(
+        query: ModalRoute.of(context)!.settings.arguments as QueryInfo?,
+      ),
+  'DataMap': (context) => const MHMapView(),
+  'Settings': (context) => const Settings(),
+  'Settings/Churches': (context) => MiniModelList<Church>(
+        title: 'الكنائس',
+        transformer: Church.fromDoc,
+        add: (context) => churchTap(
+          context,
+          Church.createNew(),
+          true,
+          canDelete: false,
+        ),
+        modify: churchTap,
+        collection: GetIt.I<MHDatabaseRepo>().collection('Churches'),
+      ),
+  'Settings/Fathers': (context) => MiniModelList<Father>(
+        title: 'الأباء الكهنة',
+        transformer: Father.fromDoc,
+        add: (context) => fatherTap(
+          context,
+          Father.createNew(),
+          true,
+          canDelete: false,
+        ),
+        modify: fatherTap,
+        collection: GetIt.I<MHDatabaseRepo>().collection('Fathers'),
+      ),
+  'Settings/StudyYears': (context) => MiniModelList<StudyYear>(
+        title: 'السنوات الدراسية',
+        transformer: StudyYear.fromDoc,
+        add: (context) => studyYearTap(
+          context,
+          StudyYear.createNew(),
+          true,
+          canDelete: false,
+        ),
+        modify: studyYearTap,
+        completer: (q) => q.orderBy('Grade'),
+        collection: GetIt.I<MHDatabaseRepo>().collection('StudyYears'),
+      ),
+  'Settings/Schools': (context) => MiniModelList<School>(
+        transformer: School.fromDoc,
+        collection: GetIt.I<MHDatabaseRepo>().collection('Schools'),
+        title: 'المدارس',
+      ),
+  'Settings/Colleges': (context) => MiniModelList<College>(
+        transformer: College.fromDoc,
+        collection: GetIt.I<MHDatabaseRepo>().collection('Colleges'),
+        title: 'الكليات',
+      ),
+  'UpdateUserDataError': (context) => const UpdateUserDataErrorPage(),
+  'ManageUsers': (context) => const UsersPage(),
+  'Invitations': (context) => const InvitationsPage(),
+  'ActivityAnalysis': (context) => ActivityAnalysis(
+        parents:
+            ModalRoute.of(context)?.settings.arguments as List<DataObject>?,
+      ),
+  'Analytics': (context) {
+    if (ModalRoute.of(context)!.settings.arguments is Person) {
+      return PersonAnalyticsPage(
+        person: ModalRoute.of(context)!.settings.arguments! as Person,
+      );
+    } else if (ModalRoute.of(context)!.settings.arguments is DataObject) {
+      return AnalyticsPage(
+        parents: [
+          ModalRoute.of(context)!.settings.arguments! as DataObject,
+        ],
+      );
+    } else if (ModalRoute.of(context)!.settings.arguments is HistoryDayBase) {
+      return AnalyticsPage(
+        day: ModalRoute.of(context)!.settings.arguments! as HistoryDayBase,
+      );
+    } else {
+      final Json args = ModalRoute.of(context)!.settings.arguments! as Json;
+      return AnalyticsPage(
+        historyColection: args['HistoryCollection'] ?? 'History',
+        parents: args['Classes'],
+        day: args['Day'],
+        range: args['Range'],
+      );
+    }
+  },
+};

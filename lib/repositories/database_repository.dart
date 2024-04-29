@@ -4,9 +4,10 @@ import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories/database/curricula_stages.dart';
 
 import 'database/classes.dart';
-import 'database/exams.dart';
+import 'database/exams_scores.dart';
 import 'database/persons.dart';
 import 'database/services.dart';
+import 'database/subjects.dart';
 import 'database/users.dart';
 
 class MHDatabaseRepo extends DatabaseRepository {
@@ -17,7 +18,9 @@ class MHDatabaseRepo extends DatabaseRepository {
   late final persons = Persons(this);
   late final classes = Classes(this);
   late final services = Services(this);
-  late final exams = Exams(this);
+
+  late final subjects = Subjects(this);
+  late final examsScores = ExamsScores(this);
   late final curriculaStages = CurriculaStages(this);
 
   @override
