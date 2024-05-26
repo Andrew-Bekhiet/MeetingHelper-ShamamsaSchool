@@ -630,8 +630,7 @@ class _EditUserState extends State<EditUser> {
         actions: <Widget>[
           TextButton(
             style: Theme.of(context).textButtonTheme.style!.copyWith(
-                  foregroundColor:
-                      MaterialStateProperty.resolveWith((state) => Colors.red),
+                  foregroundColor: const WidgetStatePropertyAll(Colors.red),
                 ),
             onPressed: () async {
               try {

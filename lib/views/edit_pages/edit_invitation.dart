@@ -462,9 +462,7 @@ class _EditInvitationState extends State<EditInvitation> {
             actions: <Widget>[
               TextButton(
                 style: Theme.of(innerContext).textButtonTheme.style!.copyWith(
-                      foregroundColor: MaterialStateProperty.resolveWith(
-                        (state) => Colors.red,
-                      ),
+                      foregroundColor: const WidgetStatePropertyAll(Colors.red),
                     ),
                 onPressed: () {
                   navigator.currentState!.pop(true);
