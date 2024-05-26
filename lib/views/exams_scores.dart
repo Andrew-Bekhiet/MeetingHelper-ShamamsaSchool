@@ -103,7 +103,20 @@ class _ExamsScoresState extends State<ExamsScores> {
       body: StreamBuilder<Map<Year, Map<Term, List<ExamScore>>>>(
         stream: structuredScoresStream,
         builder: (context, snapshot) {
-          if (!snapshot.hasData) return const SizedBox();
+          if (snapshot.hasError) {
+            return ErrorWidget.builder(
+              FlutterErrorDetails(
+                exception: snapshot.error!,
+                stack: snapshot.stackTrace,
+              ),
+            );
+          } else if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.data!.isEmpty) {
+            return Center(
+              child: Text('لا توجد امتحانات سابقة ل${widget.person?.name}'),
+            );
+          }
 
           final Map<Year, Map<Term, List<ExamScore>>> scores =
               snapshot.data ?? {};
