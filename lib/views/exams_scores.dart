@@ -180,14 +180,19 @@ class _ExamScoreWidget extends StatelessWidget {
             children: [
               Expanded(child: Text(snapshot.data!.name)),
               Text(
-                DateFormat('yyyy/M/d', 'ar-EG').format(score.date),
+                score.score.toString() +
+                    '/' +
+                    snapshot.data!.fullMark.toString(),
               ),
             ],
           ),
           subtitle: Row(
             children: [
               Expanded(
-                child: Text(score.score.toString()),
+                child: Text(
+                  DateFormat('yyyy/M/d', 'ar-EG').format(score.date),
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
               ),
               // arabic grade name based on score percentage
               Text(
@@ -200,6 +205,10 @@ class _ExamScoreWidget extends StatelessWidget {
                 },
               ),
             ],
+          ),
+          trailing: CircularProgressIndicator(
+            strokeCap: StrokeCap.round,
+            value: score.score / snapshot.data!.fullMark,
           ),
         );
       },
