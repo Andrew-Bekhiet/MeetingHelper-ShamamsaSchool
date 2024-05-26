@@ -37,10 +37,6 @@ class _ExamsScoresState extends State<ExamsScores> {
   }
 
   void _initStreams() {
-    // final List<int> searchYears = [
-    //   for (int y = _minSearchYear; y <= DateTime.now().year; y++) y,
-    // ];
-
     scoresStream = MHDatabaseRepo.I.examsScores.getAll(
       queryCompleter: (q, orderBy, descending) {
         if (widget.person != null) {
@@ -53,22 +49,21 @@ class _ExamsScoresState extends State<ExamsScores> {
     );
 
     structuredScoresStream = scoresStream.map(
-      (scores) {
-        final structuredScores = <Year, Map<Term, List<ExamScore>>>{};
+      (scores) => _sortStructuredScores(_organizeScores(scores)),
+    );
+  }
 
-        for (final score in scores) {
-          final year = score.year;
-          final term = score.term;
-
-          if (!structuredScores.containsKey(year)) structuredScores[year] = {};
-
-          structuredScores[year]![term] = [
-            ...structuredScores[year]![term] ?? [],
-            score,
-          ];
-        }
-
-        return _sortStructuredScores(structuredScores);
+  Map<Year, Map<Term, List<ExamScore>>> _organizeScores(
+    List<ExamScore> scores,
+  ) {
+    return scores.groupFoldBy<Year, Map<Term, List<ExamScore>>>(
+      (score) => score.year,
+      (yearScores, score) => {
+        ...yearScores ?? {},
+        score.term: [
+          ...yearScores?[score.term] ?? [],
+          score,
+        ],
       },
     );
   }
@@ -77,10 +72,10 @@ class _ExamsScoresState extends State<ExamsScores> {
     Map<Year, Map<Term, List<ExamScore>>> structuredScores,
   ) {
     return structuredScores.map(
-      (key, value) => MapEntry(
-        key,
+      (year, yearScores) => MapEntry(
+        year,
         Map.fromEntries(
-          value.entries
+          yearScores.entries
               .sortedByCompare(
                 (e) => e.key,
                 (a, b) => a.compareTo(b),
@@ -158,9 +153,7 @@ class _ExamScoreWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return FutureBuilder(
       future: _subjectsDataFutures[score.subject.id] ??=
-          MHDatabaseRepo.I.subjects.getById(
-        score.subject.id,
-      ),
+          MHDatabaseRepo.I.subjects.getById(score.subject.id),
       builder: (context, snapshot) {
         if (!snapshot.hasData &&
             snapshot.connectionState == ConnectionState.waiting) {
