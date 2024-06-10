@@ -433,6 +433,14 @@ final appRoutes = {
   'ExamsScores': (context) => ExamsScores(
         person: ModalRoute.of(context)!.settings.arguments as Person?,
       ),
+  'EditExamsScore': (context) {
+    final args =
+        ModalRoute.of(context)!.settings.arguments! as Map<Type, Object?>;
+    return EditExamScore(
+      person: args[Person]! as Person,
+      initialExamScore: args[ExamScore] as ExamScore?,
+    );
+  },
   'Update': (context) => const Update(),
   'Search': (context) => const SearchQuery(),
   'SearchQuery': (context) => SearchQuery(

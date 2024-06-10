@@ -9,19 +9,17 @@ part of 'exam_score.dart';
 abstract class _$ExamScoreCWProxy {
   ExamScore ref(DocumentReference<Map<String, dynamic>> ref);
 
-  ExamScore year(int year);
-
   ExamScore date(DateTime date);
 
   ExamScore subject(DocumentReference<Map<String, dynamic>> subject);
 
   ExamScore term(int term);
 
-  ExamScore score(int score);
+  ExamScore score(double score);
 
   ExamScore personId(DocumentReference<Map<String, dynamic>> personId);
 
-  ExamScore classId(DocumentReference<Map<String, dynamic>> classId);
+  ExamScore classId(DocumentReference<Map<String, dynamic>>? classId);
 
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `ExamScore(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
   ///
@@ -31,11 +29,10 @@ abstract class _$ExamScoreCWProxy {
   /// ````
   ExamScore call({
     DocumentReference<Map<String, dynamic>>? ref,
-    int? year,
     DateTime? date,
     DocumentReference<Map<String, dynamic>>? subject,
     int? term,
-    int? score,
+    double? score,
     DocumentReference<Map<String, dynamic>>? personId,
     DocumentReference<Map<String, dynamic>>? classId,
   });
@@ -51,9 +48,6 @@ class _$ExamScoreCWProxyImpl implements _$ExamScoreCWProxy {
   ExamScore ref(DocumentReference<Map<String, dynamic>> ref) => this(ref: ref);
 
   @override
-  ExamScore year(int year) => this(year: year);
-
-  @override
   ExamScore date(DateTime date) => this(date: date);
 
   @override
@@ -64,14 +58,14 @@ class _$ExamScoreCWProxyImpl implements _$ExamScoreCWProxy {
   ExamScore term(int term) => this(term: term);
 
   @override
-  ExamScore score(int score) => this(score: score);
+  ExamScore score(double score) => this(score: score);
 
   @override
   ExamScore personId(DocumentReference<Map<String, dynamic>> personId) =>
       this(personId: personId);
 
   @override
-  ExamScore classId(DocumentReference<Map<String, dynamic>> classId) =>
+  ExamScore classId(DocumentReference<Map<String, dynamic>>? classId) =>
       this(classId: classId);
 
   @override
@@ -84,7 +78,6 @@ class _$ExamScoreCWProxyImpl implements _$ExamScoreCWProxy {
   /// ````
   ExamScore call({
     Object? ref = const $CopyWithPlaceholder(),
-    Object? year = const $CopyWithPlaceholder(),
     Object? date = const $CopyWithPlaceholder(),
     Object? subject = const $CopyWithPlaceholder(),
     Object? term = const $CopyWithPlaceholder(),
@@ -97,10 +90,6 @@ class _$ExamScoreCWProxyImpl implements _$ExamScoreCWProxy {
           ? _value.ref
           // ignore: cast_nullable_to_non_nullable
           : ref as DocumentReference<Map<String, dynamic>>,
-      year: year == const $CopyWithPlaceholder() || year == null
-          ? _value.year
-          // ignore: cast_nullable_to_non_nullable
-          : year as int,
       date: date == const $CopyWithPlaceholder() || date == null
           ? _value.date
           // ignore: cast_nullable_to_non_nullable
@@ -116,15 +105,15 @@ class _$ExamScoreCWProxyImpl implements _$ExamScoreCWProxy {
       score: score == const $CopyWithPlaceholder() || score == null
           ? _value.score
           // ignore: cast_nullable_to_non_nullable
-          : score as int,
+          : score as double,
       personId: personId == const $CopyWithPlaceholder() || personId == null
           ? _value.personId
           // ignore: cast_nullable_to_non_nullable
           : personId as DocumentReference<Map<String, dynamic>>,
-      classId: classId == const $CopyWithPlaceholder() || classId == null
+      classId: classId == const $CopyWithPlaceholder()
           ? _value.classId
           // ignore: cast_nullable_to_non_nullable
-          : classId as DocumentReference<Map<String, dynamic>>,
+          : classId as DocumentReference<Map<String, dynamic>>?,
     );
   }
 }
@@ -133,4 +122,24 @@ extension $ExamScoreCopyWith on ExamScore {
   /// Returns a callable class that can be used as follows: `instanceOfExamScore.copyWith(...)` or like so:`instanceOfExamScore.copyWith.fieldName(...)`.
   // ignore: library_private_types_in_public_api
   _$ExamScoreCWProxy get copyWith => _$ExamScoreCWProxyImpl(this);
+
+  /// Copies the object with the specific fields set to `null`. If you pass `false` as a parameter, nothing will be done and it will be ignored. Don't do it. Prefer `copyWith(field: null)` or `ExamScore(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
+  ///
+  /// Usage
+  /// ```dart
+  /// ExamScore(...).copyWithNull(firstField: true, secondField: true)
+  /// ````
+  ExamScore copyWithNull({
+    bool classId = false,
+  }) {
+    return ExamScore(
+      ref: ref,
+      date: date,
+      subject: subject,
+      term: term,
+      score: score,
+      personId: personId,
+      classId: classId == true ? null : this.classId,
+    );
+  }
 }

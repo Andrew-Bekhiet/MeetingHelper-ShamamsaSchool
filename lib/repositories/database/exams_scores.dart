@@ -26,4 +26,16 @@ class ExamsScores extends TableBase<ExamScore> {
 
     return ExamScore.fromDoc(doc);
   }
+
+  Future<void> add(ExamScore score) async {
+    await repository.collection('ExamsScores').add(score.toJson());
+  }
+
+  Future<void> update(String id, ExamScore score) async {
+    await repository.collection('ExamsScores').doc(id).update(score.toJson());
+  }
+
+  Future<void> delete(String id) async {
+    await repository.collection('ExamsScores').doc(id).delete();
+  }
 }

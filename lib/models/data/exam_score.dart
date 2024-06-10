@@ -8,17 +8,15 @@ part 'exam_score.g.dart';
 @immutable
 @CopyWith(copyWithNull: true)
 class ExamScore extends DataObject {
-  final int year;
   final DateTime date;
   final JsonRef subject;
   final int term;
-  final int score;
+  final double score;
   final JsonRef personId;
-  final JsonRef classId;
+  final JsonRef? classId;
 
   ExamScore({
     required JsonRef ref,
-    required this.year,
     required this.date,
     required this.subject,
     required this.term,
@@ -28,11 +26,10 @@ class ExamScore extends DataObject {
   }) : super(ref, 'ExamScore: ${ref.id}');
 
   ExamScore.fromJson(super.data, super.ref)
-      : year = data['Year'],
-        date = DateTime.parse(data['Date']),
+      : date = DateTime.parse(data['Date']),
         subject = data['Subject'],
         term = data['Term'],
-        score = data['Score'],
+        score = data['Score']?.toDouble() ?? 0,
         personId = data['PersonId'],
         classId = data['ClassId'],
         super.fromJson();
@@ -42,7 +39,7 @@ class ExamScore extends DataObject {
   @override
   Map<String, dynamic> toJson() {
     return {
-      'Year': year,
+      'Year': date.year,
       'Date': date.toIso8601String().split('T').first,
       'Subject': subject,
       'Term': term,

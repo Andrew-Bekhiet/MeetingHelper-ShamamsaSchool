@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:meetinghelper/repositories/database_repository.dart';
 
-import '../models.dart';
+import '../../models.dart';
 
 typedef Year = int;
 typedef Term = int;
@@ -57,7 +57,7 @@ class _ExamsScoresState extends State<ExamsScores> {
     List<ExamScore> scores,
   ) {
     return scores.groupFoldBy<Year, Map<Term, List<ExamScore>>>(
-      (score) => score.year,
+      (score) => score.date.year,
       (yearScores, score) => {
         ...yearScores ?? {},
         score.term: [
@@ -140,6 +140,7 @@ class _ExamsScoresState extends State<ExamsScores> {
                           _ExamScoreWidget(
                             subjectsDataFutures: _subjectsDataFutures,
                             score: score,
+                            person: widget.person!,
                           ),
                       ],
                     ),
@@ -149,6 +150,12 @@ class _ExamsScoresState extends State<ExamsScores> {
           );
         },
       ),
+      floatingActionButton: FloatingActionButton(
+        tooltip: 'إضافة نتيجة امتحان',
+        onPressed: () => Navigator.of(context)
+            .pushNamed('EditExamsScore', arguments: {Person: widget.person}),
+        child: const Icon(Icons.add),
+      ),
     );
   }
 }
@@ -157,10 +164,12 @@ class _ExamScoreWidget extends StatelessWidget {
   const _ExamScoreWidget({
     required Map<String, Future<Subject?>> subjectsDataFutures,
     required this.score,
+    required this.person,
   }) : _subjectsDataFutures = subjectsDataFutures;
 
   final Map<String, Future<Subject?>> _subjectsDataFutures;
   final ExamScore score;
+  final Person person;
 
   @override
   Widget build(BuildContext context) {
@@ -176,6 +185,10 @@ class _ExamScoreWidget extends StatelessWidget {
         }
 
         return ListTile(
+          onTap: () => Navigator.of(context).pushNamed(
+            'EditExamsScore',
+            arguments: {Person: person, ExamScore: score},
+          ),
           title: Row(
             children: [
               Expanded(child: Text(snapshot.data!.name)),
@@ -197,7 +210,7 @@ class _ExamScoreWidget extends StatelessWidget {
               // arabic grade name based on score percentage
               Text(
                 switch (score.score / snapshot.data!.fullMark) {
-                  >= 0.9 => 'امتياز',
+                  >= 0.9 => 'ممتاز',
                   >= 0.8 => 'جيد جداً',
                   >= 0.7 => 'جيد',
                   >= 0.5 => 'مقبول',

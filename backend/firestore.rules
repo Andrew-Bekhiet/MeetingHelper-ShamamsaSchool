@@ -654,30 +654,52 @@ service cloud.firestore {
     }
 
     match /ExamsScores {
-      allow read: if checkUserRegistered()
-        && (request.auth.token.superAccess || request.auth.uid in get(resource.data.ClassId).data.Allowed);
-      allow write: if checkUserRegistered()
-        && (request.auth.token.superAccess || request.auth.uid in get(resource.data.ClassId).data.Allowed)
-        && request.auth.token.write;
-      
       match /{item} {
         allow read: if checkUserRegistered()
           && (request.auth.token.superAccess || request.auth.uid in get(resource.data.ClassId).data.Allowed);
-        allow write: if checkUserRegistered()
+        allow delete: if checkUserRegistered()
           && (request.auth.token.superAccess || request.auth.uid in get(resource.data.ClassId).data.Allowed)
           && request.auth.token.write;
+
+        allow create, update: if checkUserRegistered()
+          && (request.auth.token.superAccess || request.auth.uid in get(resource.data.ClassId).data.Allowed)
+          && request.auth.token.write
+          && ['Year', 'Date', 'Subject', 'Term', 'Score', 'PersonId', 'ClassId'].hasAll(request.resource.data.keys())
+          && request.resource.data.Term > 0
+          && request.resource.data.Score > 0
+          && request.resource.data.Score <= get(request.resource.data.Subject).data.FullMark
+          && (request.resource.data.ClassId == null
+            || get(request.resource.data.PersonId).data.ClassId == request.resource.data.ClassId
+          )
+          && (request.resource.data.ClassId == null
+            || request.auth.token.superAccess
+            || request.auth.uid in get(request.resource.data.ClassId).data.Allowed
+          );
       }
     }
 
     match /Subjects {
       allow read: if checkUserRegistered();
-      allow write: if checkUserRegistered()
-        && request.auth.token.write;
       
       match /{item} {
         allow read: if checkUserRegistered();
-        allow write: if checkUserRegistered()
-          && request.auth.token.write;
+      }
+    }
+    
+    //TODO: review rules
+    match /Terms {
+      allow read: if checkUserRegistered();
+      
+      match /{item} {
+        allow read: if checkUserRegistered();
+      }
+    }
+
+    match /DefaultTerms {
+      allow read: if checkUserRegistered();
+      
+      match /{item} {
+        allow read: if checkUserRegistered();
       }
     }
 
