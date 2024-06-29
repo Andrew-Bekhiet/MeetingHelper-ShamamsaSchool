@@ -425,13 +425,16 @@ class _ClassInfoState extends State<ClassInfo> {
               ),
             ],
             body: SafeArea(
-              child: class$.ref.path.startsWith('Deleted')
-                  ? const Text('يجب استعادة الفصل لرؤية المخدومين بداخله')
-                  : DataObjectListView<StudyYear?, Person>(
-                      groupBuilder: _studyYearGroupBuilder,
-                      controller: _listController,
-                      autoDisposeController: true,
-                    ),
+              child: Builder(
+                builder: (context) {
+                  return DataObjectListView<StudyYear?, Person>(
+                    scrollController: PrimaryScrollController.maybeOf(context),
+                    groupBuilder: _studyYearGroupBuilder,
+                    controller: _listController,
+                    autoDisposeController: true,
+                  );
+                },
+              ),
             ),
           ),
           bottomNavigationBar: BottomAppBar(
