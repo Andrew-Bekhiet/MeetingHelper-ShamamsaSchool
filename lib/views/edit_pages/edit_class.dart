@@ -246,9 +246,9 @@ class _EditClassState extends State<EditClass> {
                       ),
                     ),
                   ),
-                  ElevatedButton.icon(
+                  FilledButton.tonalIcon(
                     style: class$.color != Colors.transparent
-                        ? ElevatedButton.styleFrom(
+                        ? FilledButton.styleFrom(
                             backgroundColor:
                                 Theme.of(context).brightness == Brightness.light
                                     ? class$.color?.lighten()
@@ -261,9 +261,9 @@ class _EditClassState extends State<EditClass> {
                   ),
                   if (User.instance.permissions.manageAllowedUsers ||
                       User.instance.permissions.manageUsers)
-                    ElevatedButton.icon(
+                    FilledButton.tonalIcon(
                       style: class$.color != Colors.transparent
-                          ? ElevatedButton.styleFrom(
+                          ? FilledButton.styleFrom(
                               backgroundColor: Theme.of(context).brightness ==
                                       Brightness.light
                                   ? class$.color?.lighten()

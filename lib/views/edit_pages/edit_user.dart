@@ -424,7 +424,7 @@ class _EditUserState extends State<EditUser> {
                     ),
                   ),
                 ),
-                ElevatedButton.icon(
+                FilledButton.tonalIcon(
                   onPressed: editAdminOnClasses,
                   icon: const Icon(Icons.groups),
                   label: Text(
@@ -434,7 +434,7 @@ class _EditUserState extends State<EditUser> {
                     overflow: TextOverflow.fade,
                   ),
                 ),
-                ElevatedButton.icon(
+                FilledButton.tonalIcon(
                   onPressed: editChildrenUsers,
                   icon: const Icon(Icons.shield),
                   label: Text(
@@ -444,7 +444,7 @@ class _EditUserState extends State<EditUser> {
                     overflow: TextOverflow.fade,
                   ),
                 ),
-                ElevatedButton.icon(
+                FilledButton.tonalIcon(
                   onPressed: resetPassword,
                   icon: const Icon(Icons.lock_open),
                   label: const Text('إعادة تعيين كلمة السر'),

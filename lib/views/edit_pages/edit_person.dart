@@ -263,7 +263,7 @@ class _EditPersonState extends State<EditPerson> {
                         ),
                       ),
                     ),
-                  ElevatedButton.icon(
+                  FilledButton.tonalIcon(
                     icon: const Icon(Icons.add),
                     label: const Text('اضافة رقم هاتف أخر'),
                     onPressed: () async {
@@ -603,7 +603,7 @@ class _EditPersonState extends State<EditPerson> {
                       },
                     ),
                   ),
-                  ElevatedButton.icon(
+                  FilledButton.tonalIcon(
                     icon: const Icon(Icons.map),
                     label: const Text('تعديل مكان المنزل على الخريطة'),
                     onPressed: _editLocation,
@@ -1044,9 +1044,9 @@ class _EditPersonState extends State<EditPerson> {
                       validator: (value) => null,
                     ),
                   ),
-                  ElevatedButton.icon(
+                  FilledButton.tonalIcon(
                     style: person.color != Colors.transparent
-                        ? ElevatedButton.styleFrom(
+                        ? FilledButton.styleFrom(
                             backgroundColor:
                                 Theme.of(context).brightness == Brightness.light
                                     ? person.color?.lighten()

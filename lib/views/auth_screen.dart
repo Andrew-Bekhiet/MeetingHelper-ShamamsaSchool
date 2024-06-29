@@ -97,12 +97,12 @@ class _AuthScreenState extends State<AuthScreen> {
                 },
                 onFieldSubmitted: _submit,
               ),
-              ElevatedButton(
+              FilledButton(
                 onPressed: () => _submit(_passwordText.text),
                 child: const Text('تسجيل الدخول'),
               ),
               if (canCheckBio!)
-                OutlinedButton.icon(
+                FilledButton.tonalIcon(
                   icon: const Icon(Icons.fingerprint),
                   label: const Text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'),
                   onPressed: _authenticate,

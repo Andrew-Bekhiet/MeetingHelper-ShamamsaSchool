@@ -770,7 +770,7 @@ class _SearchQueryState extends State<SearchQuery> {
                   ),
                 ],
               ),
-            ElevatedButton.icon(
+            FilledButton.icon(
               icon: const Icon(Icons.done),
               onPressed: execute,
               label: const Text('تنفيذ'),

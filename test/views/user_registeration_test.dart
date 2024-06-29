@@ -72,7 +72,7 @@ void main() {
               expect(find.byTooltip('تسجيل الخروج'), findsOneWidget);
               expect(find.byType(TextFormField), findsOneWidget);
               expect(
-                find.widgetWithText(ElevatedButton, 'تفعيل الحساب باللينك'),
+                find.widgetWithText(FilledButton, 'تفعيل الحساب باللينك'),
                 findsOneWidget,
               );
             },
@@ -201,7 +201,7 @@ void main() {
                 findsOneWidget,
               );
               expect(
-                find.widgetWithText(ElevatedButton, 'انشاء حساب جديد'),
+                find.widgetWithText(FilledButton, 'انشاء حساب جديد'),
                 findsOneWidget,
               );
             },
@@ -232,7 +232,7 @@ void main() {
                 'ss',
               );
               await tester
-                  .tap(find.widgetWithText(ElevatedButton, 'انشاء حساب جديد'));
+                  .tap(find.widgetWithText(FilledButton, 'انشاء حساب جديد'));
 
               await tester.pumpAndSettle();
 
@@ -299,7 +299,7 @@ void main() {
                   .lastConfession = lastConfession;
 
               await tester
-                  .tap(find.widgetWithText(ElevatedButton, 'انشاء حساب جديد'));
+                  .tap(find.widgetWithText(FilledButton, 'انشاء حساب جديد'));
 
               await tester.pumpAndSettle();
 

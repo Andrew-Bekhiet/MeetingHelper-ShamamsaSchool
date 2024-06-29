@@ -393,7 +393,7 @@ class _PersonInfoState extends State<PersonInfo> {
                 CopiablePropertyWidget('العنوان:', person.address),
                 if (person.location != null &&
                     !person.ref.path.startsWith('Deleted'))
-                  ElevatedButton.icon(
+                  FilledButton.tonalIcon(
                     icon: const Icon(Icons.map),
                     onPressed: () => navigator.currentState!.push(
                       MaterialPageRoute(
@@ -454,13 +454,13 @@ class _PersonInfoState extends State<PersonInfo> {
                 ),
                 CopiablePropertyWidget('ملاحظات', person.notes),
                 const Divider(thickness: 1),
-                ElevatedButton.icon(
+                FilledButton.tonalIcon(
                   icon: const Icon(Symbols.overview),
                   label: const Text('نتائج الامتحانات'),
                   onPressed: () => _showExamsScores(context, person),
                 ),
                 if (!person.ref.path.startsWith('Deleted'))
-                  ElevatedButton.icon(
+                  FilledButton.tonalIcon(
                     icon: const Icon(Icons.analytics),
                     label: const Text('احصائيات الحضور'),
                     onPressed: () => _showAnalytics(context, person),

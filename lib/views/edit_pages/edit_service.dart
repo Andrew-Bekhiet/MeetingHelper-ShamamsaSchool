@@ -309,9 +309,9 @@ class _EditServiceState extends State<EditService> {
                       ),
                     ),
                   ),
-                  ElevatedButton.icon(
+                  FilledButton.tonalIcon(
                     style: service.color != Colors.transparent
-                        ? ElevatedButton.styleFrom(
+                        ? FilledButton.styleFrom(
                             backgroundColor:
                                 Theme.of(context).brightness == Brightness.light
                                     ? service.color?.lighten()
@@ -324,9 +324,9 @@ class _EditServiceState extends State<EditService> {
                   ),
                   if (User.instance.permissions.manageAllowedUsers ||
                       User.instance.permissions.manageUsers)
-                    ElevatedButton.icon(
+                    FilledButton.tonalIcon(
                       style: service.color != Colors.transparent
-                          ? ElevatedButton.styleFrom(
+                          ? FilledButton.styleFrom(
                               backgroundColor: Theme.of(context).brightness ==
                                       Brightness.light
                                   ? service.color?.lighten()

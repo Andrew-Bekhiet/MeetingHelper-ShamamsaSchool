@@ -261,7 +261,7 @@ class _UserRegistrationState extends State<UserRegistration> {
                         ? 'يجب تحديد تاريخ أخر اعتراف'
                         : null,
                   ),
-                  ElevatedButton(
+                  FilledButton(
                     onPressed: () =>
                         _submit(_passwordText.text, _userName.text),
                     child: const Text('انشاء حساب جديد'),
@@ -322,7 +322,7 @@ class _UserRegistrationState extends State<UserRegistration> {
                   return null;
                 },
               ),
-              ElevatedButton(
+              FilledButton(
                 onPressed: () => _registerUser(_linkController.text),
                 child: const Text('تفعيل الحساب باللينك'),
               ),

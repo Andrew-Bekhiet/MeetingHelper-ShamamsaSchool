@@ -377,15 +377,16 @@ class _ClassInfoState extends State<ClassInfo> {
                         ),
                       ),
                       if (!class$.ref.path.startsWith('Deleted'))
-                        ElevatedButton.icon(
+                        FilledButton.tonalIcon(
                           icon: const Icon(Icons.map),
                           onPressed: () => showMap(context, class$),
                           label: const Text('إظهار المخدومين على الخريطة'),
                         ),
+                      const Divider(thickness: 1),
                       if (!class$.ref.path.startsWith('Deleted') &&
                           (User.instance.permissions.manageUsers ||
                               User.instance.permissions.manageAllowedUsers))
-                        ElevatedButton.icon(
+                        FilledButton.tonalIcon(
                           icon: const Icon(Icons.analytics_outlined),
                           onPressed: () => Navigator.pushNamed(
                             context,
@@ -395,7 +396,7 @@ class _ClassInfoState extends State<ClassInfo> {
                           label: const Text('تحليل نشاط الخدام'),
                         ),
                       if (!class$.ref.path.startsWith('Deleted'))
-                        ElevatedButton.icon(
+                        FilledButton.tonalIcon(
                           key: _analytics,
                           icon: const Icon(Icons.analytics_outlined),
                           label: const Text('احصائيات الحضور'),

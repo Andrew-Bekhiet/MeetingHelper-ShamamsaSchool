@@ -94,7 +94,7 @@ class SettingsState extends State<Settings> {
                           'تغيير لون البرنامج حسب أسبوع الآلام وفترة الخمسين',
                         ),
                       ),
-                      ElevatedButton.icon(
+                      FilledButton.tonalIcon(
                         onPressed: () async {
                           await GetIt.I<CacheRepository>()
                               .box('Settings')

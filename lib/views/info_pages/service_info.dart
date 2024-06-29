@@ -406,7 +406,7 @@ class _ServiceInfoState extends State<ServiceInfo> {
                         subtitle: Text(service.showInHistory ? 'نعم' : 'لا'),
                       ),
                       if (!service.ref.path.startsWith('Deleted'))
-                        ElevatedButton.icon(
+                        FilledButton.tonalIcon(
                           icon: const Icon(Icons.map),
                           onPressed: () => showMap(context, service),
                           label: const Text('إظهار المخدومين على الخريطة'),
@@ -414,7 +414,7 @@ class _ServiceInfoState extends State<ServiceInfo> {
                       if (!service.ref.path.startsWith('Deleted') &&
                           (User.instance.permissions.manageUsers ||
                               User.instance.permissions.manageAllowedUsers))
-                        ElevatedButton.icon(
+                        FilledButton.tonalIcon(
                           icon: const Icon(Icons.analytics_outlined),
                           onPressed: () => Navigator.pushNamed(
                             context,
@@ -424,14 +424,14 @@ class _ServiceInfoState extends State<ServiceInfo> {
                           label: const Text('تحليل نشاط الخدام'),
                         ),
                       if (!service.ref.path.startsWith('Deleted'))
-                        ElevatedButton.icon(
+                        FilledButton.tonalIcon(
                           key: _analytics,
                           icon: const Icon(Icons.analytics_outlined),
                           label: const Text('احصائيات الحضور'),
                           onPressed: () => _showAnalytics(context, service),
                         ),
                       if (!service.ref.path.startsWith('Deleted'))
-                        ElevatedButton.icon(
+                        FilledButton.tonalIcon(
                           icon: const Icon(Icons.quiz),
                           label: const Text('الامتحانات'),
                           onPressed: () => _showExams(context, service),

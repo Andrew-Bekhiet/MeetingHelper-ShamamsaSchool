@@ -258,7 +258,7 @@ class _UserInfoState extends State<UserInfo> {
                     ],
                   ),
                 ),
-                ElevatedButton.icon(
+                FilledButton.tonalIcon(
                   label: Text('رؤية البيانات كما يراها ' + user.name),
                   icon: const Icon(Icons.visibility),
                   onPressed: () => showDialog(
@@ -299,7 +299,7 @@ class _UserInfoState extends State<UserInfo> {
                     ),
                   ),
                 ),
-                ElevatedButton.icon(
+                FilledButton.tonalIcon(
                   label: Text(
                     'المستخدمين المسؤول عنهم ' + user.name,
                     textScaler: const TextScaler.linear(0.95),

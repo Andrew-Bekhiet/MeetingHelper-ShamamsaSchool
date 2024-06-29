@@ -300,18 +300,18 @@ class _MyAccountState extends State<MyAccount> {
                 leading: Icon(IconData(0xe7f7, fontFamily: 'MaterialIconsR')),
                 title: Text('إشعار حضور الاجتماع'),
               ),
-            ElevatedButton.icon(
+            FilledButton.tonalIcon(
               onPressed: () async => navigator.currentState!
                   .pushNamed('UpdateUserDataError', arguments: user),
               icon: const Icon(Icons.update),
               label: const Text('تحديث بيانات الاعتراف والتناول'),
             ),
-            ElevatedButton.icon(
+            FilledButton.tonalIcon(
               onPressed: () => changeName(user.name, user.uid),
               icon: const Icon(Icons.edit),
               label: const Text('تغيير الاسم'),
             ),
-            ElevatedButton.icon(
+            FilledButton.tonalIcon(
               onPressed: changePass,
               icon: const Icon(Icons.lock),
               label: const Text('تغيير كلمة السر'),
