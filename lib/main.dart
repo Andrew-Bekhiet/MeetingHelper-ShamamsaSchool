@@ -430,9 +430,14 @@ final appRoutes = {
   'InvitationInfo': (context) => InvitationInfo(
         invitation: ModalRoute.of(context)!.settings.arguments! as Invitation,
       ),
-  'ExamsScores': (context) => ExamsScores(
-        person: ModalRoute.of(context)!.settings.arguments as Person?,
-      ),
+  'ExamsScores': (context) =>
+      ModalRoute.of(context)!.settings.arguments is Person
+          ? PersonExamsScores(
+              person: ModalRoute.of(context)!.settings.arguments! as Person,
+            )
+          : ClassExamsScores(
+              class$: ModalRoute.of(context)!.settings.arguments! as Class,
+            ),
   'EditExamsScore': (context) {
     final args =
         ModalRoute.of(context)!.settings.arguments! as Map<Type, Object?>;

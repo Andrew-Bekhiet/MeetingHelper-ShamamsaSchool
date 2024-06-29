@@ -1,5 +1,6 @@
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/services.dart';
@@ -376,32 +377,37 @@ class _ClassInfoState extends State<ClassInfo> {
                           },
                         ),
                       ),
-                      if (!class$.ref.path.startsWith('Deleted'))
+                      if (!class$.ref.path.startsWith('Deleted')) ...[
                         FilledButton.tonalIcon(
                           icon: const Icon(Icons.map),
                           onPressed: () => showMap(context, class$),
                           label: const Text('إظهار المخدومين على الخريطة'),
                         ),
-                      const Divider(thickness: 1),
-                      if (!class$.ref.path.startsWith('Deleted') &&
-                          (User.instance.permissions.manageUsers ||
-                              User.instance.permissions.manageAllowedUsers))
+                        const Divider(thickness: 1),
                         FilledButton.tonalIcon(
-                          icon: const Icon(Icons.analytics_outlined),
-                          onPressed: () => Navigator.pushNamed(
-                            context,
-                            'ActivityAnalysis',
-                            arguments: [class$],
-                          ),
-                          label: const Text('تحليل نشاط الخدام'),
+                          icon: const Icon(Symbols.overview),
+                          label: const Text('نتائج الامتحانات'),
+                          onPressed: () => _showExamsScores(context, class$),
                         ),
-                      if (!class$.ref.path.startsWith('Deleted'))
+                        const Divider(thickness: 1),
+                        if (User.instance.permissions.manageUsers ||
+                            User.instance.permissions.manageAllowedUsers)
+                          FilledButton.tonalIcon(
+                            icon: const Icon(Icons.analytics_outlined),
+                            onPressed: () => Navigator.pushNamed(
+                              context,
+                              'ActivityAnalysis',
+                              arguments: [class$],
+                            ),
+                            label: const Text('تحليل نشاط الخدام'),
+                          ),
                         FilledButton.tonalIcon(
                           key: _analytics,
                           icon: const Icon(Icons.analytics_outlined),
                           label: const Text('احصائيات الحضور'),
                           onPressed: () => _showAnalytics(context, class$),
                         ),
+                      ],
                       const Divider(thickness: 1),
                       EditHistoryProperty(
                         'أخر تحديث للبيانات:',
@@ -521,6 +527,10 @@ class _ClassInfoState extends State<ClassInfo> {
 
   void _showAnalytics(BuildContext context, Class _class) {
     navigator.currentState!.pushNamed('Analytics', arguments: _class);
+  }
+
+  void _showExamsScores(BuildContext context, Class class$) {
+    navigator.currentState!.pushNamed('ExamsScores', arguments: class$);
   }
 }
 

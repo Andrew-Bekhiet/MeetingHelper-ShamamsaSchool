@@ -1,30 +1,21 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:meetinghelper/repositories/database/exams_scores.dart';
 import 'package:meetinghelper/repositories/database_repository.dart';
 
-import '../../models.dart';
+import '../../models.dart' hide Term;
 
-typedef Year = int;
-typedef Term = int;
+class PersonExamsScores extends StatefulWidget {
+  final Person person;
 
-class ExamsScores extends StatefulWidget {
-  final Person? person;
-
-  const ExamsScores({super.key, this.person});
+  const PersonExamsScores({required this.person, super.key});
 
   @override
-  State<ExamsScores> createState() => _ExamsScoresState();
+  State<PersonExamsScores> createState() => _PersonExamsScoresState();
 }
 
-class _ExamsScoresState extends State<ExamsScores> {
-  // static const _minSearchYear = 2024;
-  // final List<int> searchYears = [
-  //   for (int y = _minSearchYear; y <= DateTime.now().year; y++) y,
-  // ];
-
-  late final Stream<List<ExamScore>> scoresStream;
-  late final Stream<Map<Year, Map<Term, List<ExamScore>>>>
+class _PersonExamsScoresState extends State<PersonExamsScores> {
+  late Stream<Map<Year, Map<TermOrder, List<ExamScore>>>>
       structuredScoresStream;
 
   final Map<String, Future<Subject?>> _subjectsDataFutures = {};
@@ -33,64 +24,12 @@ class _ExamsScoresState extends State<ExamsScores> {
   void initState() {
     super.initState();
 
-    _initStreams();
-  }
-
-  void _initStreams() {
-    scoresStream = MHDatabaseRepo.I.examsScores.getAll(
+    structuredScoresStream = MHDatabaseRepo.I.examsScores.getStructuredScores(
       queryCompleter: (q, orderBy, descending) {
-        if (widget.person != null) {
-          return q
-              .where('PersonId', isEqualTo: widget.person!.ref)
-              .orderBy(orderBy, descending: descending);
-        }
-        return q.orderBy(orderBy, descending: descending);
+        return q
+            .where('PersonId', isEqualTo: widget.person.ref)
+            .orderBy(orderBy, descending: descending);
       },
-    );
-
-    structuredScoresStream = scoresStream.map(
-      (scores) => _sortStructuredScores(_organizeScores(scores)),
-    );
-  }
-
-  Map<Year, Map<Term, List<ExamScore>>> _organizeScores(
-    List<ExamScore> scores,
-  ) {
-    return scores.groupFoldBy<Year, Map<Term, List<ExamScore>>>(
-      (score) => score.date.year,
-      (yearScores, score) => {
-        ...yearScores ?? {},
-        score.term: [
-          ...yearScores?[score.term] ?? [],
-          score,
-        ],
-      },
-    );
-  }
-
-  Map<Year, Map<Term, List<ExamScore>>> _sortStructuredScores(
-    Map<Year, Map<Term, List<ExamScore>>> structuredScores,
-  ) {
-    return structuredScores.map(
-      (year, yearScores) => MapEntry(
-        year,
-        Map.fromEntries(
-          yearScores.entries
-              .sortedByCompare(
-                (e) => e.key,
-                (a, b) => a.compareTo(b),
-              )
-              .map(
-                (e) => MapEntry(
-                  e.key,
-                  e.value.sortedByCompare(
-                    (s) => s.id,
-                    (a, b) => a.compareTo(b),
-                  ),
-                ),
-              ),
-        ),
-      ),
     );
   }
 
@@ -100,7 +39,7 @@ class _ExamsScoresState extends State<ExamsScores> {
       appBar: AppBar(
         title: const Text('درجات الامتحانات'),
       ),
-      body: StreamBuilder<Map<Year, Map<Term, List<ExamScore>>>>(
+      body: StreamBuilder<Map<Year, Map<TermOrder, List<ExamScore>>>>(
         stream: structuredScoresStream,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -114,18 +53,18 @@ class _ExamsScoresState extends State<ExamsScores> {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.data!.isEmpty) {
             return Center(
-              child: Text('لا توجد امتحانات سابقة ل${widget.person?.name}'),
+              child: Text('لا توجد امتحانات سابقة ل${widget.person.name}'),
             );
           }
 
-          final Map<Year, Map<Term, List<ExamScore>>> scores =
+          final Map<Year, Map<TermOrder, List<ExamScore>>> scores =
               snapshot.data ?? {};
 
           return ListView.builder(
             itemCount: scores.length,
             itemBuilder: (context, i) {
               final year = scores.keys.elementAt(i);
-              final Map<Term, List<ExamScore>> yearScores = scores[year]!;
+              final Map<TermOrder, List<ExamScore>> yearScores = scores[year]!;
 
               return ExpansionTile(
                 title: Text(year.toString()),
@@ -140,7 +79,7 @@ class _ExamsScoresState extends State<ExamsScores> {
                           _ExamScoreWidget(
                             subjectsDataFutures: _subjectsDataFutures,
                             score: score,
-                            person: widget.person!,
+                            person: widget.person,
                           ),
                       ],
                     ),

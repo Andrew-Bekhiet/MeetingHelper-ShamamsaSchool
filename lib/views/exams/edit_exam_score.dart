@@ -55,42 +55,14 @@ class _EditExamScoreState extends State<EditExamScore> {
     subjectsStream = MHDatabaseRepo.I.subjects.getAll();
   }
 
-  Future<Term?> _getTermForDate(DateTime examDate) async {
-    final Timestamp examTimestamp = examDate.toTimestamp();
-
-    final snapshot = await MHDatabaseRepo.I
-        .collection('Terms')
-        .where('From', isLessThanOrEqualTo: examTimestamp)
-        .where('To', isGreaterThanOrEqualTo: examTimestamp)
-        .get();
-
-    if (snapshot.docs.isEmpty) {
-      final String examMonthDay = examDate.month.toString().padLeft(2, '0') +
-          '-' +
-          examDate.day.toString().padLeft(2, '0');
-
-      final defaultTermsSnapshot = await MHDatabaseRepo.I
-          .collection('DefaultTerms')
-          .where('From', isLessThanOrEqualTo: examMonthDay)
-          .where('To', isGreaterThanOrEqualTo: examMonthDay)
-          .get();
-
-      return defaultTermsSnapshot.docs
-          .map(Term.fromDefaultTermData)
-          .toList()
-          .singleOrNull;
-    } else {
-      return snapshot.docs.map(Term.fromJson).toList().singleOrNull;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('إضافة نتيجة امتحان ل${widget.person.name}'),
         actions: [
-          if (widget.initialExamScore != null)
+          if (widget.initialExamScore != null &&
+              widget.initialExamScore!.id != 'null')
             IconButton(
               icon: const Icon(Symbols.delete),
               onPressed: () async {
@@ -156,7 +128,7 @@ class _EditExamScoreState extends State<EditExamScore> {
 
                   setState(() {
                     examScore = examScore.copyWith(date: state.value);
-                    _getTermForDate(state.value!);
+                    MHDatabaseRepo.I.examsScores.getTermForDate(state.value!);
                   });
                 },
                 onSaved: (d) => examScore = examScore.copyWith(date: d),
@@ -373,12 +345,15 @@ class _EditExamScoreState extends State<EditExamScore> {
           ),
         );
 
-      final bool update = widget.initialExamScore != null;
+      final bool update = widget.initialExamScore != null &&
+          widget.initialExamScore!.id != 'null';
       final bool connected =
           (await Connectivity().checkConnectivity()).isConnected;
 
-      final int? termOrder = (await _getTermForDate(examScore.date))?.order ??
-          await _enterTermValue();
+      final int? termOrder =
+          (await MHDatabaseRepo.I.examsScores.getTermForDate(examScore.date))
+                  ?.order ??
+              await _enterTermValue();
 
       if (termOrder == null) {
         messenger.hideCurrentSnackBar();
