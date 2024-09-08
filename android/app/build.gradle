@@ -59,7 +59,7 @@ android {
     defaultConfig {
         applicationId "com.AndroidQuartz.meetinghelper.shamamsa_school"
         
-        targetSdkVersion 33
+        targetSdkVersion 34
         minSdkVersion 24
 
         versionCode flutterVersionCode.toInteger()
