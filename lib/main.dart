@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart' as firestore
     show Settings;
 import 'package:cloud_firestore/cloud_firestore.dart' show FirebaseFirestore;
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth show FirebaseAuth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -182,6 +183,17 @@ Future<void> initFirebase() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
   }
+
+  await FirebaseAppCheck.instance.activate(
+    androidProvider:
+        kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
+    appleProvider: kDebugMode ? AppleProvider.debug : AppleProvider.deviceCheck,
+    webProvider: ReCaptchaV3Provider(appCheckRecaptchaSiteKey),
+  );
+  if (kDebugMode) {
+    await auth.FirebaseAuth.instance.setSettings(forceRecaptchaFlow: true);
+  }
+
   FirebaseDatabase.instance.setPersistenceEnabled(false);
 
   registerFirebaseDependencies();
