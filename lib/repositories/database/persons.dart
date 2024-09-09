@@ -137,16 +137,12 @@ class Persons extends TableBase<Person> {
     );
   }
 
-  Stream<Map<Class?, List<Person>>> groupPersonsByClassRef([
+  Stream<Map<Class, List<Person>>> groupPersonsByClassRef([
     List<Person>? persons,
   ]) {
-    return Rx.combineLatest3<Map<JsonRef, StudyYear>, List<Person>, JsonQuery,
+    return Rx.combineLatest3<JsonQuery, List<Person>, JsonQuery,
         Map<Class, List<Person>>>(
-      repository.collection('StudyYears').orderBy('Grade').snapshots().map(
-            (sys) => {
-              for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy),
-            },
-          ),
+      repository.collection('StudyYears').orderBy('Grade').snapshots(),
       persons != null ? Stream.value(persons) : getAll(),
       User.loggedInStream.whereType<User>().switchMap(
             (user) => user.permissions.superAccess
@@ -163,30 +159,40 @@ class Persons extends TableBase<Person> {
                     .snapshots(),
           ),
       (studyYears, persons, cs) {
-        final Map<JsonRef?, List<Person>> personsByClassRef =
-            groupBy(persons, (p) => p.classId);
+        final studyYearsByRef = {
+          for (final sy in studyYears.docs) sy.reference: StudyYear.fromDoc(sy),
+        };
 
-        final classes = cs.docs
-            .map(Class.fromDoc)
-            .where((c) => personsByClassRef[c.ref] != null)
-            .toList();
+        final List<Class> sortedClasses =
+            cs.docs.map(Class.fromDoc).sortedByCompare(
+                  (c) => c,
+                  (c, c2) => c.compareTo(c2, studyYearsByRef),
+                );
 
-        final classesIds = classes.map((c) => c.ref).toSet();
+        final Map<String, Class> classesById = {
+          for (final c in sortedClasses) c.ref.id: c,
+        };
 
-        mergeSort<Class>(
-          classes,
-          compare: (c, c2) => c.compareTo(c2, studyYears),
-        );
+        final Map<Class, List<Person>> personsByClass = {};
+        final List<Person> unknownClassPersons = [];
 
-        final unknownClassPersons = personsByClassRef.entries
-            .where((kv) => !classesIds.contains(kv.key))
-            .map((e) => e.value)
-            .expand((e) => e)
-            .sortedBy((c) => c.name)
-            .toList();
+        for (final person in persons) {
+          if (person.classId != null &&
+              classesById[person.classId?.id] != null) {
+            final class$ = classesById[person.classId!.id]!;
+
+            personsByClass[class$] = [
+              ...(personsByClass[class$] ?? []),
+              person,
+            ];
+          } else {
+            unknownClassPersons.add(person);
+          }
+        }
 
         return {
-          for (final c in classes) c: personsByClassRef[c.ref]!,
+          for (final c in sortedClasses)
+            if (personsByClass[c]?.isNotEmpty ?? false) c: personsByClass[c]!,
           if (unknownClassPersons.isNotEmpty)
             Class(
               name: 'غير معروف',
@@ -203,29 +209,18 @@ class Persons extends TableBase<Person> {
       groupPersonsByStudyYearRef<T extends Person>([
     List<T>? persons,
   ]) {
-    return Rx.combineLatest2<Map<JsonRef, StudyYear>, List<T>,
-        Map<StudyYear?, List<T>>>(
-      repository.collection('StudyYears').orderBy('Grade').snapshots().map(
-            (sys) => {
-              for (final sy in sys.docs) sy.reference: StudyYear.fromDoc(sy),
-            },
-          ),
+    return Rx.combineLatest2<JsonQuery, List<T>, Map<StudyYear?, List<T>>>(
+      repository.collection('StudyYears').orderBy('Grade').snapshots(),
       (persons != null ? Stream.value(persons) : getAll())
           .map((p) => p.whereType<T>().toList()),
       (studyYears, persons) {
+        final Map<JsonRef?, List<T>> personsByStudyYear =
+            persons.groupListsBy((p) => p.studyYear);
+
         return {
-          for (final person
-              in persons.groupListsBy((p) => p.studyYear).entries.sorted(
-                    (a, b) => a.key != null && studyYears[a.key] != null
-                        ? (b.key != null && studyYears[b.key] != null
-                            ? studyYears[a.key]!
-                                .grade
-                                .compareTo(studyYears[b.key]!.grade)
-                            : 1)
-                        : -1,
-                  ))
-            if (person.key != null && studyYears[person.key] != null)
-              studyYears[person.key]: person.value,
+          for (final sy in studyYears.docs)
+            if (personsByStudyYear[sy.reference]?.isNotEmpty ?? false)
+              StudyYear.fromDoc(sy): personsByStudyYear[sy.reference]!,
         };
       },
     );
