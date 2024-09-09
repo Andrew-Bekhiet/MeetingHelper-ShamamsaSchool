@@ -86,7 +86,7 @@ class _RootState extends State<Root>
   late final ServicesListController _servicesOptions;
   late final ListController<void, CurriculumStage> _curriculaOptions;
   late final ListController<void, Person> _personsOptions;
-  late final ListController<Class?, UserWithPerson> _usersOptions;
+  late final ListController<Class?, UserWithPerson>? _usersOptions;
 
   GlobalKey _createOrGetFeatureKey(String key) {
     _features[key] ??= GlobalKey();
@@ -309,8 +309,9 @@ class _RootState extends State<Root>
                   return Text(
                     (snapshot.data?.length ?? 0).toString() + ' مخدوم',
                     textAlign: TextAlign.center,
-                    strutStyle:
-                        StrutStyle(height: IconTheme.of(context).size! / 7.5),
+                    strutStyle: StrutStyle(
+                      height: IconTheme.of(context).size! / 7.5,
+                    ),
                     style: Theme.of(context).primaryTextTheme.bodyLarge,
                   );
                 },
@@ -328,8 +329,9 @@ class _RootState extends State<Root>
                             .toString() +
                         ' فصل',
                     textAlign: TextAlign.center,
-                    strutStyle:
-                        StrutStyle(height: IconTheme.of(context).size! / 7.5),
+                    strutStyle: StrutStyle(
+                      height: IconTheme.of(context).size! / 7.5,
+                    ),
                     style: Theme.of(context).primaryTextTheme.bodyLarge,
                   );
                 },
@@ -350,7 +352,7 @@ class _RootState extends State<Root>
             }
 
             return StreamBuilder<List<UserWithPerson>>(
-              stream: _usersOptions.objectsStream,
+              stream: _usersOptions!.objectsStream,
               builder: (context, snapshot) {
                 return Text(
                   (snapshot.data?.length ?? 0).toString() + ' خادم',
@@ -372,7 +374,7 @@ class _RootState extends State<Root>
             DataObjectListView<Class?, UserWithPerson>(
               key: const PageStorageKey('mainUsersList'),
               autoDisposeController: false,
-              controller: _usersOptions,
+              controller: _usersOptions!,
               onTap: GetIt.I<MHViewableObjectService>().personTap,
             ),
           DataObjectListView<void, CurriculumStage>(
@@ -1032,7 +1034,7 @@ class _RootState extends State<Root>
     await _showSearch.close();
     await _personsOrder.close();
     await _searchQuery.close();
-    await _usersOptions.dispose();
+    await _usersOptions?.dispose();
     await _servicesOptions.dispose();
     await _personsOptions.dispose();
   }
@@ -1041,21 +1043,25 @@ class _RootState extends State<Root>
   void initState() {
     super.initState();
     initializeDateFormatting('ar_EG');
-    _usersOptions = ListController<Class?, UserWithPerson>(
-      searchStream: _searchQuery,
-      objectsPaginatableStream: PaginatableStream.loadAll(
-        stream: MHDatabaseRepo.instance.users.getAllUsersData(),
-      ),
-      groupByStream: (u) => MHDatabaseRepo.I.users.groupUsersByClass(u).map(
-            (event) => event.map(
-              (key, value) => MapEntry(
-                key,
-                value.cast<UserWithPerson>(),
-              ),
+    _usersOptions = User.instance.permissions.manageUsers ||
+            User.instance.permissions.manageAllowedUsers
+        ? ListController<Class?, UserWithPerson>(
+            searchStream: _searchQuery,
+            objectsPaginatableStream: PaginatableStream.loadAll(
+              stream: MHDatabaseRepo.instance.users.getAllUsersData(),
             ),
-          ),
-      groupingStream: Stream.value(true),
-    );
+            groupByStream: (u) =>
+                MHDatabaseRepo.I.users.groupUsersByClass(u).map(
+                      (event) => event.map(
+                        (key, value) => MapEntry(
+                          key,
+                          value.cast<UserWithPerson>(),
+                        ),
+                      ),
+                    ),
+            groupingStream: Stream.value(true),
+          )
+        : null;
 
     _servicesOptions = ServicesListController(
       searchQuery: _searchQuery,
@@ -1100,8 +1106,10 @@ class _RootState extends State<Root>
           ? 4
           : 3,
     );
+
     WidgetsBinding.instance.addObserver(this);
     _keepAlive(true);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (dialogsNotShown) showPendingUIDialogs();
     });
