@@ -228,6 +228,7 @@ export const deleteStaleData = runWith({
       );
     }
   });
+
 export const updateStudyYears = region("europe-west6")
   .pubsub.schedule("0 0 11 9 *")
   .onRun(async () => {
