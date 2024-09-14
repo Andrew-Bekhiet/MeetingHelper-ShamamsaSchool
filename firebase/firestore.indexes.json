@@ -237,38 +237,6 @@
       ]
     },
     {
-      "collectionGroup": "Leo0CIqXLwHYG1tylvrP",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        {
-          "fieldPath": "IsServant",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "ServiceId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "Time",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "Leo0CIqXLwHYG1tylvrP",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        {
-          "fieldPath": "ServiceId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "Time",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
       "collectionGroup": "Meeting",
       "queryScope": "COLLECTION_GROUP",
       "fields": [
@@ -619,38 +587,6 @@
         {
           "fieldPath": "Name",
           "order": "ASCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "py9rWWhcWMPqq7mzDa18",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        {
-          "fieldPath": "IsServant",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "ServiceId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "Time",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "py9rWWhcWMPqq7mzDa18",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        {
-          "fieldPath": "ServiceId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "Time",
-          "order": "DESCENDING"
         }
       ]
     },
