@@ -42,10 +42,7 @@ class _ClassExamsScoresState extends State<ClassExamsScores> {
       _selectedYear,
       _selectedTerm,
       _selectedSubject,
-      (a, b, c) {
-        print('a: $a, b: $b, c: $c');
-        return (a, b, c);
-      },
+      (a, b, c) => (a, b, c),
     )
         .switchMap(
           (arg) {
