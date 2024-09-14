@@ -1437,7 +1437,11 @@ class _RootState extends State<Root>
           drawerOpened = true;
           await Future.delayed(const Duration(seconds: 1));
         }
-        await Scrollable.ensureVisible(_features[t.identify]!.currentContext!);
+        final featureContext = _features[t.identify]?.currentContext;
+
+        if (featureContext != null) {
+          await Scrollable.ensureVisible(featureContext);
+        }
       }
     }
 
@@ -1448,9 +1452,12 @@ class _RootState extends State<Root>
           drawerOpened = true;
           await Future.delayed(const Duration(seconds: 1));
         }
-        await Scrollable.ensureVisible(
-          _features[featuresInOrder[0]]!.currentContext!,
-        );
+
+        final featureContext = _features[featuresInOrder[0]]?.currentContext;
+
+        if (featureContext != null) {
+          await Scrollable.ensureVisible(featureContext);
+        }
       }
 
       TutorialCoachMark(
