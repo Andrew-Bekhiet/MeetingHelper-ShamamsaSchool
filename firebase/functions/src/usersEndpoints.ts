@@ -3,10 +3,10 @@ import {
   FieldValue,
   Timestamp,
 } from "@google-cloud/firestore";
-import * as download from "download";
+import download from "download";
 import { auth, database, firestore, messaging, storage } from "firebase-admin";
 import { https as _https, region } from "firebase-functions";
-import * as nf from "node-fetch";
+import nf from "node-fetch";
 import { SHA3 } from "sha3";
 import { assertNotEmpty, getFCMTokensForUser } from "./common";
 import {
@@ -225,6 +225,7 @@ export const registerAccount = https.onCall(async (data, context) => {
       await messaging().subscribeToTopic(data.fcmToken, "ManagingUsers");
     }
   } catch (e) {
+    console.error(e);
     throw new HttpsError("not-found", "FCM Token not found");
   }
 
@@ -385,9 +386,10 @@ export const changeUserName = https.onCall(async (data, context) => {
     (currentUser.customClaims?.manageUsers ||
       (currentUser.customClaims?.manageAllowedUsers &&
         (
-          (await firestore().collection("UsersData").doc(personId).get()).data()
-            ?.AllowedUsers as Array<string>
-        ).includes(currentUser.uid)))
+          (
+            await firestore().collection("UsersData").doc(personId).get()
+          )?.data()?.AllowedUsers as Array<string>
+        )?.includes(currentUser.uid)))
   ) {
     assertNotEmpty("newName", data.newName, typeof "");
     if (data.affectedUser && typeof data.affectedUser === typeof "") {

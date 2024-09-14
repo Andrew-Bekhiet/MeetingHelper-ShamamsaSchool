@@ -319,7 +319,7 @@ export const onPersonUpdated = firestore_1
       if (
         getChangeType(change) === "update" &&
         change.after.data()?.ClassId &&
-        (!(change.after.data()?.ClassId as DocumentReference).isEqual(
+        (!(change.after.data()?.ClassId as DocumentReference)?.isEqual(
           change.before.data()?.ClassId
         ) ||
           !refArraysEqual(
@@ -494,7 +494,7 @@ export const onUserUpdated = firestore_1
       if (
         getChangeType(change) === "update" &&
         change.after.data()?.ClassId &&
-        (!(change.after.data()?.ClassId as DocumentReference).isEqual(
+        (!(change.after.data()?.ClassId as DocumentReference)?.isEqual(
           change.before.data()?.ClassId
         ) ||
           !refArraysEqual(
@@ -561,15 +561,15 @@ export const onHistoryRecordWrite = firestore_1
     if (getChangeType(change) !== "delete") {
       if (
         getChangeType(change) === "update" &&
-        !(change.after.data()?.ClassId as DocumentReference).isEqual(
+        !(change.after.data()?.ClassId as DocumentReference)?.isEqual(
           change.before.data()?.ClassId
         )
       ) {
         console.log(
           "Skipped: ClassId changed from " +
-            (change.before.data()?.ClassId as DocumentReference).path +
+            (change.before.data()?.ClassId as DocumentReference)?.path +
             " to " +
-            (change.after.data()?.ClassId as DocumentReference).path
+            (change.after.data()?.ClassId as DocumentReference)?.path
         );
         return "OK";
       }
@@ -661,15 +661,15 @@ export const onServantsHistoryRecordWrite = firestore_1
     if (getChangeType(change) !== "delete") {
       if (
         getChangeType(change) === "update" &&
-        !(change.after.data()?.ClassId as DocumentReference).isEqual(
+        !(change.after.data()?.ClassId as DocumentReference)?.isEqual(
           change.before.data()?.ClassId
         )
       ) {
         console.log(
           "Skipped: ClassId changed from " +
-            (change.before.data()?.ClassId as DocumentReference).path +
+            (change.before.data()?.ClassId as DocumentReference)?.path +
             " to " +
-            (change.after.data()?.ClassId as DocumentReference).path
+            (change.after.data()?.ClassId as DocumentReference)?.path
         );
         return "OK";
       }

@@ -1,8 +1,8 @@
-import * as archiver from "archiver";
-import * as download from "download";
+import archiver from "archiver";
+import download from "download";
 import { firestore, storage } from "firebase-admin";
 import { runWith } from "firebase-functions";
-import * as fs from "fs";
+import fs from "fs";
 import { adminPassword, projectId } from "./environment";
 
 export const dumpImages = runWith({

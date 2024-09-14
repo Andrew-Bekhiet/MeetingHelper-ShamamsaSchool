@@ -3,7 +3,7 @@ import { https, runWith } from "firebase-functions";
 import { Timestamp } from "@google-cloud/firestore";
 import { auth, firestore, storage } from "firebase-admin";
 
-import * as download from "download";
+import download from "download";
 import { readFile, utils, writeFile } from "xlsx";
 
 import { assertNotEmpty } from "./common";

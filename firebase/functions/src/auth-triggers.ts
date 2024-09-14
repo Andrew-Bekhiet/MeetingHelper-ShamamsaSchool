@@ -1,5 +1,5 @@
 import { FieldValue } from "@google-cloud/firestore";
-import * as download from "download";
+import download from "download";
 import { auth, database, firestore, messaging, storage } from "firebase-admin";
 import { region } from "firebase-functions";
 import {
