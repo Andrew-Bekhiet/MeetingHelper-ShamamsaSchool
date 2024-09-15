@@ -67,3 +67,4 @@ node_modules/
 
 meetinghelper-shamamsaschool.json
 functions/src/meetinghelper-migration.ts
+emulators/
