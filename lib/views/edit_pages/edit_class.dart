@@ -188,7 +188,7 @@ class _EditClassState extends State<EditClass> {
                                   return null;
                                 }
                               },
-                              value: class$.studyYearFrom,
+                              value: class$.studyYearTo,
                               items: data.data!
                                   .map(
                                     (item) => DropdownMenuItem(
