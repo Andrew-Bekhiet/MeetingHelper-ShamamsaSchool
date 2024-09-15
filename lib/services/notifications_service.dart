@@ -465,7 +465,9 @@ class MHNotificationsService extends NotificationsService {
             collection: MHDatabaseRepo.I.collection('Persons'),
             fieldPath: 'LastKodas',
             operator: '<',
-            queryValue: DateTime.now().truncateToDay(),
+            queryValue: DateTime.now()
+                .subtract(const Duration(days: 7))
+                .truncateToDay(),
             order: true,
             orderBy: 'LastKodas',
             descending: false,
@@ -531,7 +533,9 @@ class MHNotificationsService extends NotificationsService {
             collection: MHDatabaseRepo.I.collection('Persons'),
             fieldPath: 'LastMeeting',
             operator: '<',
-            queryValue: DateTime.now().truncateToDay(),
+            queryValue: DateTime.now()
+                .subtract(const Duration(days: 7))
+                .truncateToDay(),
             order: true,
             orderBy: 'LastMeeting',
             descending: false,
@@ -595,7 +599,9 @@ class MHNotificationsService extends NotificationsService {
             collection: MHDatabaseRepo.I.collection('Persons'),
             fieldPath: 'LastTanawol',
             operator: '<',
-            queryValue: DateTime.now().truncateToDay(),
+            queryValue: DateTime.now()
+                .subtract(const Duration(days: 7))
+                .truncateToDay(),
             order: true,
             orderBy: 'LastTanawol',
             descending: false,
@@ -659,7 +665,9 @@ class MHNotificationsService extends NotificationsService {
             collection: MHDatabaseRepo.I.collection('Persons'),
             fieldPath: 'LastVisit',
             operator: '<',
-            queryValue: DateTime.now().truncateToDay(),
+            queryValue: DateTime.now()
+                .subtract(const Duration(days: 7))
+                .truncateToDay(),
             order: true,
             orderBy: 'LastVisit',
             descending: false,
@@ -723,7 +731,9 @@ class MHNotificationsService extends NotificationsService {
             collection: MHDatabaseRepo.I.collection('Persons'),
             fieldPath: 'LastConfession',
             operator: '<',
-            queryValue: DateTime.now().truncateToDay(),
+            queryValue: DateTime.now()
+                .subtract(const Duration(days: 7))
+                .truncateToDay(),
             order: true,
             orderBy: 'LastConfession',
             descending: false,
