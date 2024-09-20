@@ -1,119 +1,169 @@
 import archiver from "archiver";
-import download from "download";
-import { firestore, storage } from "firebase-admin";
+import { auth, firestore, storage } from "firebase-admin";
 import { runWith } from "firebase-functions";
+import { HttpsError } from "firebase-functions/v1/https";
 import fs from "fs";
-import { adminPassword, projectId } from "./environment";
+import { projectId } from "./environment";
 
 export const dumpImages = runWith({
   memory: "8GB",
   timeoutSeconds: 540,
 })
   .region("europe-west6")
-  .https.onCall(async (data) => {
-    if (data.AdminPassword !== adminPassword) {
-      console.log("Wrong password");
-      return null;
+  .https.onCall(async (data, context) => {
+    if (!context.auth) {
+      throw new HttpsError("unauthenticated", "unauthenticated");
     }
 
-    const serviceId: string = data.serviceId;
-    const classId: string = data.classId;
-    const persons: Array<string> = data.persons;
-
-    const dumpId =
-      ((serviceId ?? classId) != null ? serviceId ?? classId : "dump") +
-      "-" +
-      new Date().toISOString().replace(/:/g, "-");
-
-    const _linkExpiry = new Date();
-    _linkExpiry.setHours(_linkExpiry.getHours() + 1);
-    if (serviceId) {
-      const ids = await firestore()
-        .collection("Persons")
-        .where(
-          "Services",
-          "array-contains",
-          firestore().collection("Services").doc(serviceId.toString())
-        )
-        .get();
-      for (const item of ids.docs) {
-        if (!item.data()["HasPhoto"]) continue;
-        console.log(
-          "Downloading " + item.id + ", Name: " + item.data()["Name"]
-        );
-        await download(
-          (
-            await storage()
-              .bucket("gs://" + projectId + ".appspot.com")
-              .file("PersonsPhotos/" + item.id)
-              .getSignedUrl({ action: "read", expires: _linkExpiry })
-          )[0],
-          "/tmp/downloads/" + dumpId,
-          { filename: item.id + ".jpg" }
-        );
-      }
-    } else if (classId) {
-      const ids = await firestore()
-        .collection("Persons")
-        .where(
-          "ClassId",
-          "==",
-          firestore().collection("Classes").doc(classId.toString())
-        )
-        .get();
-      for (const item of ids.docs) {
-        if (!item.data()["HasPhoto"]) continue;
-        console.log(
-          "Downloading " + item.id + ", Name: " + item.data()["Name"]
-        );
-        await download(
-          (
-            await storage()
-              .bucket("gs://" + projectId + ".appspot.com")
-              .file("PersonsPhotos/" + item.id)
-              .getSignedUrl({ action: "read", expires: _linkExpiry })
-          )[0],
-          "/tmp/downloads/" + dumpId,
-          { filename: item.id + ".jpg" }
-        );
-      }
-    } else if (persons) {
-      for (const item of persons) {
-        console.log("Downloading " + item);
-        await download(
-          (
-            await storage()
-              .bucket("gs://" + projectId + ".appspot.com")
-              .file("PersonsPhotos/" + item)
-              .getSignedUrl({ action: "read", expires: _linkExpiry })
-          )[0],
-          "/tmp/downloads/" + dumpId,
-          { filename: item + ".jpg" }
-        );
-      }
+    const currentUser = await auth().getUser(context.auth.uid);
+    if (currentUser.customClaims?.dumpImages !== true) {
+      throw new HttpsError("permission-denied", "permission-denied");
     }
 
-    const fileName = dumpId + ".zip";
-    const zipFilePath = "/tmp/" + fileName;
-    await zipDirectory("/tmp/downloads/" + dumpId, zipFilePath);
+    try {
+      const serviceId: string = data.serviceId;
+      const classId: string = data.classId;
+      const persons: Array<string> = data.persons;
 
-    console.log("uploading ...");
-    await storage()
-      .bucket("gs://" + projectId + ".appspot.com")
-      .upload(zipFilePath, {
-        destination: "ImagesDumps/" + fileName,
-        gzip: true,
-        contentType: "application/zip",
-      });
+      const dumpId =
+        ((serviceId ?? classId) != null ? serviceId ?? classId : "dump") +
+        "-" +
+        new Date().toISOString().replace(/:|\./g, "");
 
-    console.log("getting url ...");
+      const _linkExpiry = new Date();
+      _linkExpiry.setHours(_linkExpiry.getHours() + 1);
 
-    return (
+      fs.mkdirSync(`/tmp/downloads/${dumpId}`, { recursive: true });
+
+      if (serviceId) {
+        if (currentUser.customClaims?.superAccess !== true) {
+          const serviceRef = firestore().collection("Services").doc(serviceId);
+          const adminServices = (
+            await firestore()
+              .doc(`UsersData/${currentUser.customClaims!.personId}`)
+              .get()
+          ).data()?.AdminServices;
+
+          if (!adminServices.includes(serviceRef)) {
+            throw new HttpsError(
+              "permission-denied",
+              "User doesn't have permission to export the required service"
+            );
+          }
+        }
+
+        const ids = await firestore()
+          .collection("Persons")
+          .where(
+            "Services",
+            "array-contains",
+            firestore().collection("Services").doc(serviceId.toString())
+          )
+          .get();
+        for (const item of ids.docs) {
+          const file = storage()
+            .bucket("gs://" + projectId + ".appspot.com")
+            .file("PersonsPhotos/" + item.id);
+
+          if (!(await file.exists())[0]) continue;
+
+          const name = item.data()["Name"];
+
+          console.log("Downloading " + item.id + ", Name: " + name);
+
+          await file.download({
+            destination: `/tmp/downloads/${dumpId}/${item.id}.jpg`,
+          });
+        }
+      } else if (classId) {
+        if (currentUser.customClaims?.superAccess !== true) {
+          const classRef = firestore().collection("Classes").doc(classId);
+
+          if (
+            !(await classRef.get()).data()?.Allowed.includes(context.auth.uid)
+          ) {
+            throw new HttpsError(
+              "permission-denied",
+              "User doesn't have permission to export the required class"
+            );
+          }
+        }
+
+        const ids = await firestore()
+          .collection("Persons")
+          .where(
+            "ClassId",
+            "==",
+            firestore().collection("Classes").doc(classId.toString())
+          )
+          .get();
+        for (const item of ids.docs) {
+          const file = storage()
+            .bucket("gs://" + projectId + ".appspot.com")
+            .file("PersonsPhotos/" + item.id);
+
+          if (!(await file.exists())[0]) continue;
+
+          const name = item.data()["Name"];
+
+          console.log("Downloading " + item.id + ", Name: " + name);
+
+          await file.download(
+            {
+              destination: `/tmp/downloads/${dumpId}/${item.id}.jpg`,
+            },
+            (e) => {
+              console.dir(e);
+            }
+          );
+        }
+      } else if (persons) {
+        if (currentUser.customClaims?.superAccess !== true) {
+          throw new HttpsError(
+            "permission-denied",
+            "User doesn't have permission to export the required persons"
+          );
+        }
+
+        for (const item of persons) {
+          const file = storage()
+            .bucket("gs://" + projectId + ".appspot.com")
+            .file("PersonsPhotos/" + item);
+
+          if (!(await file.exists())[0]) continue;
+
+          console.log("Downloading " + item);
+          await file.download({
+            destination: `/tmp/downloads/${dumpId}/${item}.jpg`,
+          });
+        }
+      }
+
+      const fileName = `${dumpId}.zip`;
+      const zipFilePath = `/tmp/${fileName}`;
+      await zipDirectory("/tmp/downloads/" + dumpId, zipFilePath);
+
+      console.log("uploading ...");
       await storage()
         .bucket("gs://" + projectId + ".appspot.com")
-        .file("ImagesDumps/" + fileName)
-        .getSignedUrl({ action: "read", expires: _linkExpiry })
-    )[0];
+        .upload(zipFilePath, {
+          destination: "ImagesDumps/" + fileName,
+          gzip: true,
+          contentType: "application/zip",
+        });
+
+      console.log("getting url ...");
+
+      return (
+        await storage()
+          .bucket("gs://" + projectId + ".appspot.com")
+          .file("ImagesDumps/" + fileName)
+          .getSignedUrl({ action: "read", expires: _linkExpiry })
+      )[0];
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
   });
 
 export async function zipDirectory(
