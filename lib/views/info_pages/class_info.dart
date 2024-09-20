@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
 import 'package:meetinghelper/services.dart';
 import 'package:meetinghelper/utils/globals.dart';
+import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/views.dart';
 import 'package:meetinghelper/widgets.dart';
 import 'package:rxdart/rxdart.dart';
@@ -301,12 +305,25 @@ class _ClassInfoState extends State<ClassInfo> {
                         ),
                         PopupMenuButton(
                           key: _moreOptions,
-                          onSelected: (_) => MHNotificationsService.I
-                              .sendNotification(context, class$),
+                          onSelected: (option) {
+                            switch (option) {
+                              case 'dump-images':
+                                _dumpImages();
+
+                              case 'send-notification':
+                                MHNotificationsService.I
+                                    .sendNotification(context, class$);
+                            }
+                          },
                           itemBuilder: (context) {
                             return [
+                              if (User.instance.permissions.dumpImages)
+                                const PopupMenuItem(
+                                  value: 'dump-images',
+                                  child: Text('تنزيل ملف صور المخدومين'),
+                                ),
                               const PopupMenuItem(
-                                value: '',
+                                value: 'send-notification',
                                 child: Text(
                                   'ارسال إشعار للمستخدمين عن الفصل',
                                 ),
@@ -515,6 +532,27 @@ class _ClassInfoState extends State<ClassInfo> {
       onLongPress: onLongPress != null ? () => onLongPress(object) : null,
       trailing: trailing,
     );
+  }
+
+  Future<void> _dumpImages() async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context)
+      ..showSnackBar(
+        const SnackBar(
+          content: Text('جار التحميل...'),
+          duration: Duration(minutes: 9),
+        ),
+      );
+
+    try {
+      final url = await MHFunctionsService.I.dumpImages(class$: widget.class$);
+
+      scaffoldMessenger.hideCurrentSnackBar();
+
+      await GetIt.I<LauncherService>().launchUrl(Uri.parse(url));
+    } catch (e) {
+      scaffoldMessenger.hideCurrentSnackBar();
+      unawaited(showErrorDialog(context, e.toString(), title: 'حدث خطأ'));
+    }
   }
 
   void showMap(BuildContext context, Class class$) {
