@@ -108,14 +108,9 @@ export const dumpImages = runWith({
 
           console.log("Downloading " + item.id + ", Name: " + name);
 
-          await file.download(
-            {
-              destination: `/tmp/downloads/${dumpId}/${item.id}.jpg`,
-            },
-            (e) => {
-              console.dir(e);
-            }
-          );
+          await file.download({
+            destination: `/tmp/downloads/${dumpId}/${item.id}.jpg`,
+          });
         }
       } else if (persons) {
         if (currentUser.customClaims?.superAccess !== true) {
