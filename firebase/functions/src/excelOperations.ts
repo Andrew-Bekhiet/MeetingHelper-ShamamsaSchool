@@ -166,9 +166,13 @@ export const exportToExcel = runWith({
       rslt["Name"] = _classData["Name"];
       rslt["ID"] = _class!.id;
       rslt["Color"] = _classData["Color"];
-      rslt["Study Year"] =
+      rslt["Study Year From"] =
         studyYears[
-          (_classData["StudyYear"] as firestore.DocumentReference)?.id
+          (_classData["StudyYearFrom"] as firestore.DocumentReference)?.id
+        ];
+      rslt["Study Year To"] =
+        studyYears[
+          (_classData["StudyYearTo"] as firestore.DocumentReference)?.id
         ];
       rslt["Class Gender"] =
         _classData["Gender"] === true
@@ -198,9 +202,13 @@ export const exportToExcel = runWith({
         rslt["ID"] = c.id;
         rslt["Name"] = c.data()["Name"];
         rslt["Color"] = c.data()["Color"];
-        rslt["Study Year"] =
+        rslt["Study Year From"] =
           studyYears[
-            (c.data()["StudyYear"] as firestore.DocumentReference)?.id
+            (c.data()["StudyYearFrom"] as firestore.DocumentReference)?.id
+          ];
+        rslt["Study Year To"] =
+          studyYears[
+            (c.data()["StudyYearTo"] as firestore.DocumentReference)?.id
           ];
         rslt["Class Gender"] =
           c.data()["Gender"] === true
@@ -329,14 +337,11 @@ export const exportToExcel = runWith({
         )
       );
 
+      const personClass = classes[p.data()["ClassId"]?.id];
+
       rslt["Area"] = ""; //Will be filled later
       rslt["ID"] = p.id;
-      rslt["Class Name"] = classes[
-        (p.data()["ClassId"] as firestore.DocumentReference)?.id
-      ]?.Name
-        ? classes[(p.data()["ClassId"] as firestore.DocumentReference)?.id]
-            ?.Name
-        : "(غير موجود)";
+      rslt["Class Name"] = personClass?.Name ?? "(غير موجود)";
       rslt["Name"] = p.data()["Name"];
       rslt["Color"] = p.data()["Color"];
       rslt["Phone Number"] = p.data()["Phone"];
@@ -354,13 +359,13 @@ export const exportToExcel = runWith({
       rslt["Birth Date"] = (p.data()["BirthDate"] as Timestamp)?.toDate()
         ? toNearestDay((p.data()["BirthDate"] as Timestamp)?.toDate())
         : "";
-      rslt["Study Year"] = classes[
-        (p.data()["ClassId"] as firestore.DocumentReference)?.id
-      ]
-        ? classes[(p.data()["ClassId"] as firestore.DocumentReference)?.id][
-            "Study Year"
-          ]
-        : "(غير موجود)";
+
+      rslt["Study Year"] =
+        studyYears[
+          personClass?.StudyYearFrom?.id == personClass?.StudyYearTo?.id
+            ? personClass?.StudyYearFrom?.id
+            : p.data()["StudyYear"]?.id
+        ] ?? "(غير موجودة)";
 
       rslt["Notes"] = p.data()["Notes"];
       rslt["School"] =
@@ -399,22 +404,93 @@ export const exportToExcel = runWith({
     }, {});
 
     const book = utils.book_new();
-    utils.book_append_sheet(
-      book,
-      utils.json_to_sheet(Object.values(services)),
-      "Services"
-    );
-    utils.book_append_sheet(
-      book,
-      utils.json_to_sheet(Object.values(classes)),
-      "Classes"
-    );
-    utils.book_append_sheet(
-      book,
-      utils.json_to_sheet(Object.values(persons)),
-      "Persons"
-    );
+    book.Workbook = {
+      ...(book.Workbook ?? {}),
+      Views: [{ RTL: true }, ...(book.Workbook?.Views ?? [])],
+    };
+
+    const servicesValues = Object.values(services);
+    const classesValues = Object.values(classes);
+    const personsValues = Object.values(persons);
+
+    const servicesSheet = utils.json_to_sheet(servicesValues);
+    const classesSheet = utils.json_to_sheet(classesValues);
+    const personsSheet = utils.json_to_sheet(personsValues);
+
+    //Adjust column widths
+    if (servicesValues.length > 0) {
+      servicesSheet["!cols"] = Object.keys(servicesValues[0]).map(
+        (propertyName) => {
+          const maxCharWidth =
+            servicesValues.reduce(
+              (max, current) =>
+                Math.max(max, current[propertyName]?.length ?? -1),
+              propertyName.length
+            ) || undefined;
+
+          return {
+            DBF: {
+              name: propertyName,
+            },
+            wch: maxCharWidth,
+          };
+        }
+      );
+    }
+
+    if (classesValues.length > 0) {
+      classesSheet["!cols"] = Object.keys(classesValues[0]).map(
+        (propertyName) => {
+          const maxCharWidth =
+            classesValues.reduce(
+              (max, current) =>
+                Math.max(max, current[propertyName]?.length ?? -1),
+              propertyName.length
+            ) || undefined;
+
+          return {
+            DBF: {
+              name: propertyName,
+            },
+            wch: maxCharWidth,
+          };
+        }
+      );
+    }
+
+    if (personsValues.length > 0) {
+      personsSheet["!cols"] = Object.keys(personsValues[0]).map(
+        (propertyName) => {
+          const maxCharWidth =
+            personsValues.reduce(
+              (max, current) =>
+                Math.max(
+                  max,
+                  (typeof current[propertyName] === "string" ||
+                  typeof current[propertyName] === "number"
+                    ? current[propertyName].toString()
+                    : current[propertyName]?.toISOString().split("T")[0]
+                  )?.length ?? -1
+                ),
+              propertyName.length
+            ) || undefined;
+
+          return {
+            DBF: {
+              name: propertyName,
+            },
+            wch: maxCharWidth,
+          };
+        }
+      );
+    }
+
+    utils.book_append_sheet(book, servicesSheet, "Services");
+    utils.book_append_sheet(book, classesSheet, "Classes");
+    utils.book_append_sheet(book, personsSheet, "Persons");
+
     await writeFile(book, "/tmp/Export.xlsx");
+
     const file = (
       await storage()
         .bucket("gs://" + projectId + ".appspot.com")
