@@ -160,7 +160,7 @@ export const exportToExcel = runWith({
 
       services[_service!.id] = rslt;
     } else if (data?.onlyClass) {
-      const _classData = _class!.data() ? _class!.data()! : {};
+      const _classData = _class!.data() ?? {};
 
       const rslt: Record<string, string> = {};
       rslt["Name"] = _classData["Name"];
