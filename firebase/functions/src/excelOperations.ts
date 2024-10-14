@@ -165,7 +165,7 @@ export const exportToExcel = runWith({
       const rslt: Record<string, string> = {};
       rslt["Name"] = _classData["Name"];
       rslt["ID"] = _class!.id;
-      rslt["Color"] = _classData["Color"];
+      rslt["Color"] = formatColor(_classData["Color"]);
       rslt["Study Year From"] =
         studyYears[
           (_classData["StudyYearFrom"] as firestore.DocumentReference)?.id
@@ -201,7 +201,7 @@ export const exportToExcel = runWith({
         const rslt: Record<string, string> = {};
         rslt["ID"] = c.id;
         rslt["Name"] = c.data()["Name"];
-        rslt["Color"] = c.data()["Color"];
+        rslt["Color"] = formatColor(c.data()["Color"]);
         rslt["Study Year From"] =
           studyYears[
             (c.data()["StudyYearFrom"] as firestore.DocumentReference)?.id
@@ -343,7 +343,7 @@ export const exportToExcel = runWith({
       rslt["ID"] = p.id;
       rslt["Class Name"] = personClass?.Name ?? "(غير موجود)";
       rslt["Name"] = p.data()["Name"];
-      rslt["Color"] = p.data()["Color"];
+      rslt["Color"] = formatColor(p.data()["Color"]);
       rslt["Phone Number"] = p.data()["Phone"];
       rslt["Father Phone Number"] = p.data()["FatherPhone"];
       rslt["Mother Phone Number"] = p.data()["MotherPhone"];
@@ -607,7 +607,7 @@ export const importFromExcel = runWith({
 
           const rslt: Record<string, any> = {};
           rslt["Name"] = c["Name"];
-          rslt["Color"] = c["Color"];
+          rslt["Color"] = parseColor(c["Color"]);
           if (!studyYears[c["Study Year"] as string])
             throw new https.HttpsError(
               "invalid-argument",
@@ -671,7 +671,7 @@ export const importFromExcel = runWith({
               : [];
 
           rslt["Address"] = person["Address"] ?? "";
-          rslt["Color"] = person["Color"] ?? 0;
+          rslt["Color"] = parseColor(person["Color"]) ?? 0;
           if (person["Birth Date"] !== "" && person["Birth Date"]) {
             const _birthDay = dateFromExcelSerial(
               person["Birth Date"] as number | string
@@ -819,6 +819,23 @@ export const importFromExcel = runWith({
     await batch.commit();
     return "OK";
   });
+
+function formatColor<T>(c: T): T | string {
+  return typeof c === "number" ? "#" + (c as number).toString(16) : c;
+}
+
+function parseColor(c: any): number | null {
+  let result;
+  const color = typeof c === "string" ? c : c?.toString();
+
+  if (color?.startsWith("#")) {
+    result = Number.parseInt(color.replace("#", ""), 16);
+  } else {
+    result = Number.parseInt(color, 10);
+  }
+
+  return Number.isNaN(result) ? null : result;
+}
 
 function toNearestDay(date: Date): Date {
   date.setUTCDate(date.getUTCDate() + (date.getUTCDate() >= 12 ? 1 : 0));
