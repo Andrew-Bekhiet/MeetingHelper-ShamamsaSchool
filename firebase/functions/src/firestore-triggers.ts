@@ -6,6 +6,7 @@ import {
 import { firestore, storage } from "firebase-admin";
 import { FirebaseDynamicLinks } from "firebase-dynamic-links";
 import { region } from "firebase-functions";
+import { DateTime } from "luxon";
 import { getChangeType } from "./common";
 import {
   firebase_dynamic_links_key,
@@ -230,6 +231,9 @@ export const onPersonUpdated = firestore_1
   .document("Persons/{person}")
   .onWrite(async (change) => {
     try {
+      const changeDataAfter = change.after.data();
+      const changeDataBefore = change.before.data();
+
       if (getChangeType(change) === "delete") {
         const dayID = new Date().toISOString().split("T")[0];
         await firestore()
@@ -305,6 +309,28 @@ export const onPersonUpdated = firestore_1
           LastEdit: change.after.data()?.LastEdit,
           LastEditTime: FieldValue.serverTimestamp(),
         });
+
+      if (
+        (changeDataAfter?.BirthDate as Timestamp)?.seconds !==
+        (changeDataBefore?.BirthDate as Timestamp)?.seconds
+      ) {
+        let birthDate: DateTime = DateTime.fromMillis(
+          (changeDataAfter!.BirthDate as Timestamp).toMillis()!
+        ).setZone("Africa/Cairo");
+
+        if (birthDate.hour > 12) {
+          birthDate = birthDate.startOf("day").plus({ days: 1 });
+        } else {
+          birthDate = birthDate.startOf("day");
+        }
+
+        batch.update(change.after.ref, {
+          BirthDateString: birthDate.toISODate(),
+          BirthDateMonthDay: `${birthDate.month}-${birthDate.day}`,
+          BirthDateMonth: birthDate.month,
+        });
+      }
+
       await batch.commit();
 
       const grade: number = (
