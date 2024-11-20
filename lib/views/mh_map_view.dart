@@ -93,7 +93,7 @@ class _MHMapViewState extends State<MHMapView> {
           body: FutureBuilder<List<Person>>(
             future: Future.wait(
               [
-                ...selected.whereType<Class>().toList().split(10).map(
+                ...selected.whereType<Class>().toList().split(30).map(
                   (c) {
                     return GetIt.I<MHDatabaseRepo>()
                         .persons
@@ -107,7 +107,7 @@ class _MHMapViewState extends State<MHMapView> {
                         .first;
                   },
                 ),
-                ...selected.whereType<Service>().toList().split(10).map(
+                ...selected.whereType<Service>().toList().split(30).map(
                   (s) {
                     return GetIt.I<MHDatabaseRepo>()
                         .persons
