@@ -29,6 +29,7 @@ if (flutterVersionName == null) {
 android {
     namespace 'com.AndroidQuartz.meetinghelper.shamamsa_school'
 
+    compileSdkVersion 35
     buildToolsVersion '34.0.0'
     compileSdk 35
     ndkVersion = "26.1.10909125"

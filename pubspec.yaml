@@ -10,7 +10,6 @@ environment:
   sdk: ">=3.0.0 <4.0.0"
 
 dependency_overrides:
-  firebase_database: ^11.0.0
 
 dependencies:
   android_alarm_manager_plus: ^4.0.2
@@ -73,7 +72,7 @@ dependencies:
   random_color: ^1.0.6-nullsafety
   rxdart: ^0.28.0
   sentry_flutter: ^8.3.0
-  share_plus: ^10.0.0
+  share_plus: ^10.1.4
   spreadsheet_decoder: ^2.0.2
   supabase: ^2.0.9
   syncfusion_flutter_charts: #^26.2.13
