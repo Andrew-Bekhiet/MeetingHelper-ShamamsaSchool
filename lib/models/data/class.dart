@@ -110,7 +110,8 @@ class Class extends DataObject implements PhotoObjectBase {
               ).then((d) => d.join(',')).catchError((_) => ''),
         'Members': getMembersString(),
         'HasPhoto': hasPhoto ? 'نعم' : 'لا',
-        'Color': color != null ? '0x' + color!.value.toRadixString(16) : null,
+        'Color':
+            color != null ? '0x' + color!.argbValue.toRadixString(16) : null,
         'LastEdit': lastEdit != null
             ? MHDatabaseRepo.instance.users.getUserName(lastEdit!.uid)
             : null,
@@ -123,7 +124,7 @@ class Class extends DataObject implements PhotoObjectBase {
         'StudyYearTo': studyYearTo,
         'Gender': gender,
         'HasPhoto': hasPhoto,
-        'Color': color?.value,
+        'Color': color?.argbValue,
         'LastEdit': lastEdit?.uid,
         'LastEditTime': lastEdit?.time,
         'Allowed': allowedUsers,

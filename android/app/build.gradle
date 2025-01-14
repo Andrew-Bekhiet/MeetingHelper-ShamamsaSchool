@@ -30,7 +30,7 @@ android {
     namespace 'com.AndroidQuartz.meetinghelper.shamamsa_school'
 
     buildToolsVersion '34.0.0'
-    compileSdk 34
+    compileSdk 35
     ndkVersion = "26.1.10909125"
 
     compileOptions {
