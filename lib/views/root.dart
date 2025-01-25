@@ -419,10 +419,15 @@ class _RootState extends State<Root>
               trailing: trailing,
             ),
           ),
-          ServicesList(
-            key: const PageStorageKey('mainClassesList'),
-            autoDisposeController: false,
-            options: _servicesOptions,
+          NestedScrollView(
+            headerSliverBuilder: (context, innerBoxIsScrolled) => [
+              const SliverToBoxAdapter(child: BirthdaysBanner()),
+            ],
+            body: ServicesList(
+              key: const PageStorageKey('mainClassesList'),
+              autoDisposeController: false,
+              options: _servicesOptions,
+            ),
           ),
           DataObjectListView<void, Person>(
             key: const PageStorageKey('mainPersonsList'),
