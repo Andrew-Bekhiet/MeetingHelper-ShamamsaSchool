@@ -7,14 +7,14 @@ import download from "download";
 import { auth, database, firestore, messaging, storage } from "firebase-admin";
 import { https as _https, region } from "firebase-functions";
 import nf from "node-fetch";
-import { SHA3 } from "sha3";
 import { assertNotEmpty, getFCMTokensForUser } from "./common";
 import {
-  adminPassword,
-  firebase_dynamic_links_prefix,
+  firebaseDynamicLinksAPIKey,
+  firebaseDynamicLinksPrefix,
   packageName,
   projectId,
 } from "./environment";
+import { encryptPassword } from "./passwordEncryption";
 
 const https = region("europe-west6").https;
 const HttpsError = _https.HttpsError;
@@ -31,12 +31,23 @@ export const registerWithLink = https.onCall(async (data, context) => {
     throw new HttpsError("aborted", "User already approved");
   }
 
+  if (
+    !firebaseDynamicLinksAPIKey ||
+    !firebaseDynamicLinksPrefix ||
+    !packageName
+  ) {
+    throw new HttpsError(
+      "unavailable",
+      "Firebase Dynamic Links is not available"
+    );
+  }
+
   console.log("Checking types ...");
   assertNotEmpty("link", data.link, typeof "");
 
   const argLink: string = data.link;
 
-  if (!argLink.startsWith(firebase_dynamic_links_prefix)) {
+  if (!argLink.startsWith(firebaseDynamicLinksPrefix)) {
     console.error("Invalid registeration link, link:", argLink);
     throw new HttpsError("invalid-argument", "Invalid registeration link");
   }
@@ -215,19 +226,6 @@ export const registerAccount = https.onCall(async (data, context) => {
   newCustomClaims["password"] = data.password;
   newCustomClaims["lastConfession"] = data.lastConfession;
   newCustomClaims["lastTanawol"] = data.lastTanawol;
-  try {
-    if (
-      data.fcmToken &&
-      currentUser.customClaims?.approved &&
-      (currentUser.customClaims?.manageUsers ||
-        currentUser.customClaims?.manageAllowedUsers)
-    ) {
-      await messaging().subscribeToTopic(data.fcmToken, "ManagingUsers");
-    }
-  } catch (e) {
-    console.error(e);
-    throw new HttpsError("not-found", "FCM Token not found");
-  }
 
   await auth().updateUser(currentUser.uid, { displayName: data.name });
   await firestore()
@@ -259,19 +257,8 @@ export const registerFCMToken = https.onCall(async (data, context) => {
   assertNotEmpty("token", data.token, typeof "");
   await database()
     .ref("Users/" + context.auth.uid + "/FCM_Tokens/" + data.token)
-    .set("token");
-  const currentUserClaims = (await auth().getUser(context.auth.uid))
-    .customClaims;
-  if (
-    currentUserClaims?.approved &&
-    (currentUserClaims?.manageUsers || currentUserClaims?.manageAllowedUsers) &&
-    (await getFCMTokensForUser(context.auth.uid))
-  ) {
-    await messaging().subscribeToTopic(
-      await getFCMTokensForUser(context.auth.uid),
-      "ManagingUsers"
-    );
-  }
+    .set(new Date().getTime());
+
   return "OK";
 });
 
@@ -303,11 +290,7 @@ export const updateUserSpiritData = https.onCall(async (data, context) => {
 export const sendMessageToUsers = https.onCall(async (data, context) => {
   let from: string;
   if (context.auth === undefined) {
-    if (data.AdminPassword === adminPassword) {
-      from = "";
-    } else {
-      throw new HttpsError("unauthenticated", "");
-    }
+    throw new HttpsError("unauthenticated", "");
   } else if ((await auth().getUser(context.auth.uid)).customClaims!.approved) {
     from = context.auth.uid;
   } else {
@@ -349,29 +332,27 @@ export const sendMessageToUsers = https.onCall(async (data, context) => {
   }
   console.log("usersToSend[0]:" + usersToSend[0]);
   console.log("usersToSend" + usersToSend);
-  await messaging().sendToDevice(
-    usersToSend,
-    {
-      notification: {
-        title: data.title,
-        body: data.body,
-      },
-      data: {
-        click_action: "FLUTTER_NOTIFICATION_CLICK",
-        type: "Message",
-        title: data.title,
-        content: data.content,
-        attachement: data.attachement,
-        time: String(Date.now()),
-        sentFrom: from,
-      },
-    },
-    {
+  await messaging().sendEachForMulticast({
+    tokens: usersToSend,
+    android: {
       priority: "high",
-      timeToLive: 7 * 24 * 60 * 60,
+      ttl: 7 * 24 * 60 * 60,
       restrictedPackageName: packageName,
-    }
-  );
+    },
+    notification: {
+      title: data.title,
+      body: data.body,
+    },
+    data: {
+      click_action: "FLUTTER_NOTIFICATION_CLICK",
+      type: "Message",
+      title: data.title,
+      content: data.content,
+      attachement: data.attachement,
+      time: String(Date.now()),
+      sentFrom: from,
+    },
+  });
   return "OK";
 });
 
@@ -432,14 +413,13 @@ export const changePassword = https.onCall(async (data, context) => {
   //ChangePassword
   try {
     if (context.auth === undefined) {
-      if (data.AdminPassword !== adminPassword) {
-        throw new HttpsError("unauthenticated", "unauthenticated");
-      }
+      throw new HttpsError("unauthenticated", "unauthenticated");
     } else if (
       !(await auth().getUser(context.auth.uid)).customClaims?.approved
     ) {
       throw new HttpsError("unauthenticated", "Must be approved user");
     }
+
     const currentUser = await auth().getUser(context.auth!.uid);
     const newCustomClaims: Record<string, any> = currentUser.customClaims
       ? currentUser.customClaims
@@ -451,28 +431,27 @@ export const changePassword = https.onCall(async (data, context) => {
       data.oldPassword ||
       (currentUser.customClaims?.password === null && data.oldPassword === null)
     ) {
-      const s265 = new SHA3(256);
-      const s512 = new SHA3(512);
-      s512.update(data.oldPassword + "o$!hP64J^7c");
-      s265.update(
-        s512.digest("base64") + "fKLpdlk1px5ZwvF^YuIb9252C08@aQ4qDRZz5h2"
-      );
-      const digest = s265.digest("base64");
+      const oldPasswordHash = encryptPassword(data.oldPassword);
+
       if (
         currentUser.customClaims?.password &&
-        digest !== currentUser.customClaims?.password
+        oldPasswordHash !== currentUser.customClaims?.password
       ) {
         throw new HttpsError("permission-denied", "Old Password is incorrect");
       }
     } else {
       throw new HttpsError("permission-denied", "Old Password is empty");
     }
+
     newCustomClaims["password"] = data.newPassword;
+
     await auth().setCustomUserClaims(context.auth!.uid, newCustomClaims);
+
     await database()
       .ref()
       .child("Users/" + context.auth!.uid + "/forceRefresh")
       .set(true);
+
     return "OK";
   } catch (err) {
     console.log(err);
@@ -674,195 +653,4 @@ export const recoverDoc = https.onCall(async (data, context) => {
     }
     return "OK";
   }
-});
-
-export const adminRecoverDoc = https.onCall(async (data, context) => {
-  const currentUser = {
-    uid: "d",
-    customClaims: {
-      manageUsers: true,
-      manageAllowedUsers: true,
-      manageDeleted: true,
-      superAccess: true,
-    },
-  };
-  if (
-    currentUser.customClaims?.manageDeleted ||
-    (context.auth === undefined && data.AdminPassword === adminPassword)
-  ) {
-    console.log(data);
-    if (
-      !data.deletedPath ||
-      !(data.deletedPath as string).startsWith("Deleted") ||
-      !(data.deletedPath as string).match(
-        RegExp(
-          "Deleted/\\d{4}-\\d{2}-\\d{2}/((Classes)|(Services)|(Persons)).+"
-        )
-      )
-    )
-      throw new HttpsError("invalid-argument", "Invalid 'deletedPath'");
-
-    const documentToRecover = await firestore().doc(data.deletedPath).get();
-
-    if (!documentToRecover.exists)
-      throw new HttpsError("invalid-argument", "Invalid 'deletedPath'");
-
-    if (!currentUser.customClaims?.superAccess) {
-      if (
-        documentToRecover.ref.path.startsWith("Deleted/Classes") &&
-        !(documentToRecover.data()!.Allowed as Array<string>).includes(
-          currentUser.uid
-        )
-      )
-        throw new HttpsError(
-          "permission-denied",
-          "User doesn't have permission to restore the specified document"
-        );
-      else if (
-        !(
-          (
-            await (documentToRecover.data()!.ClassId as DocumentReference).get()
-          ).data()!.Allowed as Array<string>
-        ).includes(currentUser.uid)
-      ) {
-        throw new HttpsError(
-          "permission-denied",
-          "User doesn't have permission to restore the specified document"
-        );
-      }
-    }
-    if (
-      !currentUser.customClaims?.manageUsers &&
-      !currentUser.customClaims?.manageAllowedUsers &&
-      documentToRecover.ref.parent.id == "Services"
-    ) {
-      throw new HttpsError(
-        "permission-denied",
-        "To recover a service the calling user must have 'manageUsers' permission"
-      );
-    }
-
-    const documentToWrite = firestore().doc(
-      (data.deletedPath as string).replace(
-        RegExp("Deleted/\\d{4}-\\d{2}-\\d{2}/"),
-        ""
-      )
-    );
-
-    if (!data.nested) {
-      await documentToWrite.set(documentToRecover.data()!, { merge: true });
-      if (
-        await storage()
-          .bucket("gs://" + projectId + ".appspot.com")
-          .file(
-            (data.deletedPath as string)
-              .replace("/Classes/", "/ClassesPhotos/")
-              .replace("/Services/", "/ServicesPhotos/")
-              .replace("/Persons/", "/PersonsPhotos/")
-          )
-          .exists()
-      )
-        await storage()
-          .bucket("gs://" + projectId + ".appspot.com")
-          .file(
-            (data.deletedPath as string)
-              .replace("/Classes/", "/ClassesPhotos/")
-              .replace("/Services/", "/ServicesPhotos/")
-              .replace("/Persons/", "/PersonsPhotos/")
-          )
-          .move(
-            (data.deletedPath as string)
-              .replace(RegExp("Deleted/\\d{4}-\\d{2}-\\d{2}/"), "")
-              .replace("/Classes/", "/ClassesPhotos/")
-              .replace("/Services/", "/ServicesPhotos/")
-              .replace("/Persons/", "/PersonsPhotos/")
-          );
-      if (!data.keepBackup) await firestore().doc(data.deletedPath).delete();
-    } else {
-      const doc = (data.deletedPath as string).replace(
-        RegExp("Deleted/\\d{4}-\\d{2}-\\d{2}/"),
-        ""
-      );
-      let batch = firestore().batch();
-      let count = 1;
-      batch.set(documentToWrite, documentToRecover.data()!, { merge: true });
-      if (!data.keepBackup) {
-        batch.delete(firestore().doc(data.deletedPath));
-        count++;
-      }
-
-      if (doc.startsWith("Classes")) {
-        for (const item of (
-          await firestore()
-            .collectionGroup("Persons")
-            .where("ClassId", "==", firestore().doc(doc))
-            .get()
-        ).docs.filter((d) => d.ref.path.startsWith("Deleted"))) {
-          if (count % 500 === 0) {
-            await batch.commit();
-            batch = firestore().batch();
-          }
-          batch.set(
-            firestore().doc(
-              item.ref.path.replace(RegExp("Deleted/\\d{4}-\\d{2}-\\d{2}/"), "")
-            ),
-            item.data(),
-            { merge: true }
-          );
-          count++;
-          if (!data.keepBackup) {
-            batch.delete(item.ref);
-            count++;
-          }
-        }
-      } else if (doc.startsWith("Services")) {
-        for (const item of (
-          await firestore()
-            .collectionGroup("Persons")
-            .where("Services", "array-contains", firestore().doc(doc))
-            .get()
-        ).docs.filter((d) => d.ref.path.startsWith("Deleted"))) {
-          if (count % 500 === 0) {
-            await batch.commit();
-            batch = firestore().batch();
-          }
-          batch.set(
-            firestore().doc(
-              item.ref.path.replace(RegExp("Deleted/\\d{4}-\\d{2}-\\d{2}/"), "")
-            ),
-            item.data(),
-            { merge: true }
-          );
-          count++;
-          if (!data.keepBackup) {
-            batch.delete(item.ref);
-            count++;
-          }
-        }
-      }
-      await batch.commit();
-      if (
-        await storage()
-          .bucket("gs://" + projectId + ".appspot.com")
-          .file(data.deletedPath)
-          .exists()
-      )
-        await storage()
-          .bucket("gs://" + projectId + ".appspot.com")
-          .file(data.deletedPath)
-          .move(
-            (data.deletedPath as string).replace(
-              RegExp("Deleted/\\d{4}-\\d{2}-\\d{2}/"),
-              ""
-            )
-          );
-    }
-    return "OK";
-  }
-  if (context.auth)
-    throw new HttpsError(
-      "permission-denied",
-      "Must be approved user with 'manageDeleted' permission"
-    );
-  else throw new HttpsError("unauthenticated", "unauthenticated");
 });

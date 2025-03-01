@@ -9,8 +9,8 @@ import { region } from "firebase-functions";
 import { DateTime } from "luxon";
 import { getChangeType } from "./common";
 import {
-  firebase_dynamic_links_key,
-  firebase_dynamic_links_prefix,
+  firebaseDynamicLinksAPIKey,
+  firebaseDynamicLinksPrefix,
   packageName,
   projectId,
 } from "./environment";
@@ -776,22 +776,27 @@ export const onInvitationCreated = firestore_1
   .document("Invitations/{invitation}")
   .onCreate(async (change) => {
     await change.ref.update({
-      Link: (
-        await new FirebaseDynamicLinks(firebase_dynamic_links_key).createLink({
-          dynamicLinkInfo: {
-            domainUriPrefix: firebase_dynamic_links_prefix,
-            link:
-              "https://meetinghelper.com/register?InvitationId=" + change.id,
-            androidInfo: {
-              androidPackageName: packageName,
-              androidFallbackLink:
-                "https://github.com/Andrew-Bekhiet/MeetingHelper/releases/",
-              androidMinPackageVersionCode: "3",
-            },
-          },
-          suffix: { option: "UNGUESSABLE" },
-        })
-      ).shortLink,
+      Link: firebaseDynamicLinksAPIKey
+        ? (
+            await new FirebaseDynamicLinks(
+              firebaseDynamicLinksAPIKey!
+            ).createLink({
+              dynamicLinkInfo: {
+                domainUriPrefix: firebaseDynamicLinksPrefix!,
+                link:
+                  "https://meetinghelper.com/register?InvitationId=" +
+                  change.id,
+                androidInfo: {
+                  androidPackageName: packageName,
+                  androidFallbackLink:
+                    "https://github.com/Andrew-Bekhiet/MeetingHelper/releases/",
+                  androidMinPackageVersionCode: "3",
+                },
+              },
+              suffix: { option: "UNGUESSABLE" },
+            })
+          ).shortLink
+        : "https://meetinghelper.com/register?InvitationId=" + change.id,
     });
     return;
   });

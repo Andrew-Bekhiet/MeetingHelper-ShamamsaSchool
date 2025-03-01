@@ -2,8 +2,9 @@ import { FieldValue } from "@google-cloud/firestore";
 import download from "download";
 import { auth, database, firestore, messaging, storage } from "firebase-admin";
 import { region } from "firebase-functions";
+import { getFCMTokensForUser } from "./common";
 import {
-  firebase_dynamic_links_prefix,
+  firebaseDynamicLinksPrefix,
   packageName,
   projectId,
 } from "./environment";
@@ -65,32 +66,37 @@ export const onUserSignUp = auth_1.user().onCreate(async (user) => {
       personId: doc.id,
     };
   }
-  await messaging().sendToTopic(
-    "ManagingUsers",
-    {
-      notification: {
-        title: "قام " + user.displayName + " بتسجيل حساب بالبرنامج",
-        body:
-          "ان كنت تعرف " +
-          user.displayName +
-          "فقم بتنشيط حسابه ليتمكن من الدخول للبرنامج",
-      },
-      data: {
-        click_action: "FLUTTER_NOTIFICATION_CLICK",
-        type: "ManagingUsers",
-        title: "قام " + user.displayName + " بتسجيل حساب بالبرنامج",
-        content: "",
-        attachement:
-          firebase_dynamic_links_prefix + "/viewUser?UID=" + user.uid,
-        time: String(Date.now()),
-      },
+
+  const admins: string[] = await getManageUsersAdmins();
+  const fcmTokens = (await Promise.allSettled(admins.map(getFCMTokensForUser)))
+    .filter((a) => a.status === "fulfilled")
+    .flatMap((a) => a.value);
+
+  await messaging().sendEachForMulticast({
+    tokens: fcmTokens,
+    notification: {
+      title: "قام " + user.displayName + " بتسجيل حساب بالبرنامج",
+      body:
+        "ان كنت تعرف " +
+        user.displayName +
+        "فقم بتنشيط حسابه ليتمكن من الدخول للبرنامج",
     },
-    {
+    data: {
+      click_action: "FLUTTER_NOTIFICATION_CLICK",
+      type: "ManagingUsers",
+      title: "قام " + user.displayName + " بتسجيل حساب بالبرنامج",
+      content: "",
+      attachement: firebaseDynamicLinksPrefix + "/viewUser?UID=" + user.uid,
+      time: String(Date.now()),
+    },
+
+    android: {
       priority: "high",
-      timeToLive: 24 * 60 * 60,
+      ttl: 24 * 60 * 60,
       restrictedPackageName: packageName,
-    }
-  );
+    },
+  });
+
   await doc.set({
     UID: user.uid,
     Name: user.displayName ?? null,
@@ -124,7 +130,9 @@ export const onUserSignUp = auth_1.user().onCreate(async (user) => {
     .child("Users/" + user.uid + "/forceRefresh")
     .set(true);
 
-  await download(user.photoURL!, "/tmp/", { filename: user.uid + ".jpg" });
+  await download(user.photoURL!, "/tmp/", {
+    filename: user.uid + ".jpg",
+  });
   await storage()
     .bucket("gs://" + projectId + ".appspot.com")
     .upload("/tmp/" + user.uid + ".jpg", {
@@ -140,20 +148,34 @@ export const onUserDeleted = auth_1.user().onDelete(async (user) => {
     .ref()
     .child("Users/" + user.uid)
     .set(null);
-  await storage()
+
+  const userPhoto = storage()
     .bucket("gs://" + projectId + ".appspot.com")
-    .file("UsersPhotos/" + user.uid)
-    .delete();
-  await firestore().collection("Users").doc(user.uid).delete();
+    .file("UsersPhotos/" + user.uid);
+
+  if (await userPhoto.exists()) {
+    await userPhoto.delete();
+  }
+
+  const userDoc = firestore().collection("Users").doc(user.uid);
+  if ((await userDoc.get()).exists) {
+    await userDoc.delete();
+  }
+
   if (
     user.customClaims?.personId !== null &&
     user.customClaims?.personId !== undefined
-  )
-    await firestore()
+  ) {
+    const userDataDoc = firestore()
       .collection("UsersData")
-      .doc(user.customClaims.personId)
-      .delete();
-  let batch = firestore().batch();
+      .doc(user.customClaims.personId);
+
+    if ((await userDataDoc.get()).exists) {
+      await userDataDoc.delete();
+    }
+  }
+
+  const batch = firestore().batch();
   for (const doc of (
     await firestore()
       .collection("Classes")
@@ -162,8 +184,7 @@ export const onUserDeleted = auth_1.user().onDelete(async (user) => {
   ).docs) {
     batch.update(doc.ref, { Allowed: FieldValue.arrayRemove(user.uid) });
   }
-  await batch.commit();
-  batch = firestore().batch();
+
   for (const doc of (
     await firestore()
       .collection("Invitations")
@@ -172,8 +193,7 @@ export const onUserDeleted = auth_1.user().onDelete(async (user) => {
   ).docs) {
     batch.delete(doc.ref);
   }
-  await batch.commit();
-  batch = firestore().batch();
+
   for (const doc of (
     await firestore()
       .collection("Invitations")
@@ -182,5 +202,18 @@ export const onUserDeleted = auth_1.user().onDelete(async (user) => {
   ).docs) {
     batch.delete(doc.ref);
   }
+
   await batch.commit();
 });
+
+async function getManageUsersAdmins(): Promise<string[]> {
+  const users = (await auth().listUsers()).users;
+
+  return users
+    .filter((user) => {
+      return (
+        user.customClaims?.manageUsers || user.customClaims?.manageAllowedUsers
+      );
+    })
+    .map((user) => user.uid);
+}

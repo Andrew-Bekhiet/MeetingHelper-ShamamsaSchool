@@ -1,6 +1,7 @@
 import { FieldValue, v1 } from "@google-cloud/firestore";
 import { firestore, storage } from "firebase-admin";
 import { region, runWith } from "firebase-functions";
+import { projectId } from "./environment";
 
 type StudyYear = {
   Name: string;
@@ -43,7 +44,6 @@ export const doBackupFirestoreData = runWith({
   .pubsub.schedule("0 0 * * 0")
   .onRun(async () => {
     const client = new v1.FirestoreAdminClient();
-    const projectId = process.env.GCP_PROJECT || process.env.GCLOUD_PROJECT;
     const databaseName = client.databasePath(projectId!, "(default)");
     const timestamp = new Date().toISOString();
 
@@ -70,8 +70,6 @@ export const deleteStaleData = runWith({
   .region("europe-west6")
   .pubsub.schedule("0 1 * * 0")
   .onRun(async () => {
-    const projectId = process.env.GCP_PROJECT || process.env.GCLOUD_PROJECT;
-
     if (new Date().getDate() <= 7) {
       const writer = firestore().bulkWriter();
       writer.onWriteResult(async (ref) => {
