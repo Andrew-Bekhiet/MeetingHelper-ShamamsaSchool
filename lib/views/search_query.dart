@@ -44,17 +44,15 @@ class _SearchQueryState extends State<SearchQuery> {
     DropdownMenuItem(value: '!=', child: Text('لا يساوي')),
     DropdownMenuItem(value: 'contains', child: Text('قائمة تحتوي على')),
     DropdownMenuItem(value: '>', child: Text('أكبر من')),
-    DropdownMenuItem(
-      value: '<',
-      child: Text('أصغر من'),
-    ),
+    DropdownMenuItem(value: '<', child: Text('أصغر من')),
   ];
 
   final Map<JsonCollectionRef, Map<String, PropertyMetadata>> properties = {
-    GetIt.I<DatabaseRepository>().collection('Services'):
-        Service.propsMetadata()
-          ..remove('StudyYearRange')
-          ..remove('Validity'),
+    GetIt.I<DatabaseRepository>().collection(
+      'Services',
+    ): Service.propsMetadata()
+      ..remove('StudyYearRange')
+      ..remove('Validity'),
     GetIt.I<DatabaseRepository>().collection('Classes'): Class.propsMetadata(),
     GetIt.I<DatabaseRepository>().collection('Persons'): Person.propsMetadata()
       ..remove('Phones'),
@@ -68,9 +66,7 @@ class _SearchQueryState extends State<SearchQuery> {
           InkWell(
             onTap: _selectDate,
             child: InputDecorator(
-              decoration: const InputDecoration(
-                labelText: 'اختيار تاريخ',
-              ),
+              decoration: const InputDecoration(labelText: 'اختيار تاريخ'),
               child: queryValue != null
                   ? Text(
                       DateFormat('yyyy/M/d').format(
@@ -90,10 +86,7 @@ class _SearchQueryState extends State<SearchQuery> {
       ),
       queryCompleter: (q, value) {
         if (value == null) {
-          return q.where(
-            fieldPath,
-            isNull: operator == '=',
-          );
+          return q.where(fieldPath, isNull: operator == '=');
         } else {
           final effectiveValue = fieldPath == 'BirthDay'
               ? Timestamp.fromDate(DateTime(1970, value.month, value.day))
@@ -106,10 +99,7 @@ class _SearchQueryState extends State<SearchQuery> {
           }
 
           return q
-              .where(
-                fieldPath,
-                isGreaterThanOrEqualTo: effectiveValue,
-              )
+              .where(fieldPath, isGreaterThanOrEqualTo: effectiveValue)
               .where(
                 fieldPath,
                 isLessThan: Timestamp.fromDate(
@@ -290,7 +280,7 @@ class _SearchQueryState extends State<SearchQuery> {
               margin: const EdgeInsets.symmetric(vertical: 8),
               child: DropdownButtonFormField<bool?>(
                 decoration: const InputDecoration(labelText: 'اختيار النوع'),
-                value: queryValue,
+                initialValue: queryValue,
                 items: [null, true, false]
                     .map(
                       (item) => DropdownMenuItem(
@@ -299,8 +289,8 @@ class _SearchQueryState extends State<SearchQuery> {
                           item == null
                               ? 'غير محدد'
                               : item
-                                  ? 'بنين'
-                                  : 'بنات',
+                              ? 'بنين'
+                              : 'بنات',
                         ),
                       ),
                     )
@@ -325,10 +315,7 @@ class _SearchQueryState extends State<SearchQuery> {
             ),
       queryCompleter: (q, value) {
         if (value == null) {
-          return q.where(
-            fieldPath,
-            isNull: operator == '=',
-          );
+          return q.where(fieldPath, isNull: operator == '=');
         } else if (operator == '>') {
           return q.where(fieldPath, isGreaterThanOrEqualTo: value);
         } else if (operator == '<') {
@@ -354,8 +341,9 @@ class _SearchQueryState extends State<SearchQuery> {
                     onPressed: () {
                       navigator.currentState!.pop();
                       setState(() {
-                        query = query.copyWith
-                            .queryValue(Colors.transparent.argbValue);
+                        query = query.copyWith.queryValue(
+                          Colors.transparent.argbValue,
+                        );
                       });
                     },
                     child: const Text('بلا لون'),
@@ -379,18 +367,13 @@ class _SearchQueryState extends State<SearchQuery> {
           },
           child: const InputDecorator(
             decoration: InputDecoration(),
-            child: Center(
-              child: Text('اختيار لون'),
-            ),
+            child: Center(child: Text('اختيار لون')),
           ),
         ),
       ),
       queryCompleter: (q, value) {
         if (value == null) {
-          return q.where(
-            fieldPath,
-            isNull: operator == '=',
-          );
+          return q.where(fieldPath, isNull: operator == '=');
         } else if (operator == '>') {
           return q.where(fieldPath, isGreaterThanOrEqualTo: value);
         } else if (operator == '<') {
@@ -409,9 +392,7 @@ class _SearchQueryState extends State<SearchQuery> {
             key: const ValueKey('SelectClass'),
             onTap: _selectClass,
             child: InputDecorator(
-              decoration: const InputDecoration(
-                labelText: 'اختيار فصل',
-              ),
+              decoration: const InputDecoration(labelText: 'اختيار فصل'),
               child: queryValue != null && queryValue is JsonRef
                   ? FutureBuilder<Class>(
                       future: Future(
@@ -439,13 +420,12 @@ class _SearchQueryState extends State<SearchQuery> {
             key: const ValueKey('SelectUserUID'),
             onTap: () => _selectUser(true),
             child: InputDecorator(
-              decoration: const InputDecoration(
-                labelText: 'اختيار خادم',
-              ),
+              decoration: const InputDecoration(labelText: 'اختيار خادم'),
               child: queryValue != null && queryValue is String
                   ? FutureBuilder<User?>(
-                      future:
-                          MHDatabaseRepo.instance.users.getUserName(queryValue),
+                      future: MHDatabaseRepo.instance.users.getUserName(
+                        queryValue,
+                      ),
                       builder: (context, userData) {
                         if (!userData.hasData) {
                           return const LinearProgressIndicator();
@@ -470,28 +450,27 @@ class _SearchQueryState extends State<SearchQuery> {
           builder: (context, data) {
             if (data.hasData) {
               return DropdownButtonFormField<JsonRef?>(
-                value: queryValue != null &&
+                initialValue:
+                    queryValue != null &&
                         queryValue is JsonRef &&
                         (queryValue as JsonRef).parent.id.startsWith(
-                              properties[collection]![fieldPath]!
-                                  .collectionName!,
-                            )
+                          properties[collection]![fieldPath]!.collectionName!,
+                        )
                     ? queryValue
                     : null,
-                items: data.data!.docs
-                    .map(
-                      (item) => DropdownMenuItem(
-                        value: item.reference,
-                        child: Text(item.data()['Name']),
+                items:
+                    data.data!.docs
+                        .map(
+                          (item) => DropdownMenuItem(
+                            value: item.reference,
+                            child: Text(item.data()['Name']),
+                          ),
+                        )
+                        .toList()
+                      ..insert(
+                        0,
+                        const DropdownMenuItem(child: Text('(فارغ)')),
                       ),
-                    )
-                    .toList()
-                  ..insert(
-                    0,
-                    const DropdownMenuItem(
-                      child: Text('(فارغ)'),
-                    ),
-                  ),
                 onChanged: (value) async {
                   query = query.copyWith.queryValue(value);
                 },
@@ -506,10 +485,7 @@ class _SearchQueryState extends State<SearchQuery> {
       },
       queryCompleter: (q, value) {
         if (value == null) {
-          return q.where(
-            fieldPath,
-            isNull: operator == '=',
-          );
+          return q.where(fieldPath, isNull: operator == '=');
         } else if (operator == '>') {
           return q.where(fieldPath, isGreaterThanOrEqualTo: value);
         } else if (operator == '<') {
@@ -528,9 +504,7 @@ class _SearchQueryState extends State<SearchQuery> {
             key: const ValueKey('SelectServices'),
             onTap: _selectService,
             child: InputDecorator(
-              decoration: const InputDecoration(
-                labelText: 'اختيار خدمة',
-              ),
+              decoration: const InputDecoration(labelText: 'اختيار خدمة'),
               child: queryValue != null && queryValue is JsonRef
                   ? FutureBuilder<Service>(
                       future: Future(
@@ -559,13 +533,12 @@ class _SearchQueryState extends State<SearchQuery> {
             key: const ValueKey('SelectAllowed'),
             onTap: () => _selectUser(true),
             child: InputDecorator(
-              decoration: const InputDecoration(
-                labelText: 'اختيار خادم',
-              ),
+              decoration: const InputDecoration(labelText: 'اختيار خادم'),
               child: queryValue != null && queryValue is String
                   ? FutureBuilder<User?>(
-                      future:
-                          MHDatabaseRepo.instance.users.getUserName(queryValue),
+                      future: MHDatabaseRepo.instance.users.getUserName(
+                        queryValue,
+                      ),
                       builder: (context, userData) {
                         if (!userData.hasData) {
                           return const LinearProgressIndicator();
@@ -588,10 +561,7 @@ class _SearchQueryState extends State<SearchQuery> {
       },
       queryCompleter: (q, value) {
         if (value == null) {
-          return q.where(
-            fieldPath,
-            isNull: operator == '=',
-          );
+          return q.where(fieldPath, isNull: operator == '=');
         } else if (operator == '>') {
           return q.where(fieldPath, isGreaterThanOrEqualTo: value);
         } else if (operator == '<') {
@@ -613,9 +583,7 @@ class _SearchQueryState extends State<SearchQuery> {
                 key: const ValueKey('SelectServices2'),
                 onTap: () => _selectService(true),
                 child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'اختيار الخدمة',
-                  ),
+                  decoration: const InputDecoration(labelText: 'اختيار الخدمة'),
                   child: queryValue != null && fieldPath.split('.').length == 2
                       ? FutureBuilder<Service>(
                           key: ValueKey(fieldPath),
@@ -644,9 +612,7 @@ class _SearchQueryState extends State<SearchQuery> {
                 ),
               ),
               const SizedBox(height: 40),
-              Builder(
-                builder: valueWidget[DateTime]!.builder,
-              ),
+              Builder(builder: valueWidget[DateTime]!.builder),
             ],
           );
         }
@@ -654,10 +620,7 @@ class _SearchQueryState extends State<SearchQuery> {
       },
       queryCompleter: (q, value) {
         if (value == null) {
-          return q.where(
-            fieldPath,
-            isNull: operator == '=',
-          );
+          return q.where(fieldPath, isNull: operator == '=');
         } else if (operator == '>') {
           return q.where(fieldPath, isGreaterThanOrEqualTo: value);
         } else if (operator == '<') {
@@ -674,9 +637,7 @@ class _SearchQueryState extends State<SearchQuery> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('بحث مفصل'),
-      ),
+      appBar: AppBar(title: const Text('بحث مفصل')),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
@@ -724,8 +685,7 @@ class _SearchQueryState extends State<SearchQuery> {
                   key: ValueKey(collection),
                   child: DropdownButtonFormField<String>(
                     isExpanded: true,
-                    items: properties[collection]!
-                        .values
+                    items: properties[collection]!.values
                         .map(
                           (p) => DropdownMenuItem(
                             value: p.name,
@@ -733,22 +693,20 @@ class _SearchQueryState extends State<SearchQuery> {
                           ),
                         )
                         .toList(),
-                    onChanged: (p) => setState(
-                      () {
-                        query = query
-                            .copyWith(
-                              queryValue:
-                                  properties[collection]?[p!]?.defaultValue,
-                              fieldPath: p,
-                            )
-                            .copyWithNull(
-                              queryValue:
-                                  properties[collection]?[p!]?.defaultValue ==
-                                      null,
-                            );
-                      },
-                    ),
-                    value: fieldPath.split('.')[0],
+                    onChanged: (p) => setState(() {
+                      query = query
+                          .copyWith(
+                            queryValue:
+                                properties[collection]?[p!]?.defaultValue,
+                            fieldPath: p,
+                          )
+                          .copyWithNull(
+                            queryValue:
+                                properties[collection]?[p!]?.defaultValue ==
+                                null,
+                          );
+                    }),
+                    initialValue: fieldPath.split('.')[0],
                   ),
                 ),
                 const SizedBox(width: 5),
@@ -760,7 +718,7 @@ class _SearchQueryState extends State<SearchQuery> {
                     items: operatorItems,
                     onChanged: (o) =>
                         setState(() => query = query.copyWith.operator(o!)),
-                    value: operator,
+                    initialValue: operator,
                   ),
                 ),
               ],
@@ -789,9 +747,8 @@ class _SearchQueryState extends State<SearchQuery> {
                         valueWidget[properties[collection]![fieldPath]!.type]!,
                       ),
                       isExpanded: true,
-                      value: orderBy,
-                      items: properties[collection]!
-                          .values
+                      initialValue: orderBy,
+                      items: properties[collection]!.values
                           .map(
                             (p) => DropdownMenuItem(
                               value: p.name,
@@ -812,16 +769,10 @@ class _SearchQueryState extends State<SearchQuery> {
                         valueWidget[properties[collection]![fieldPath]!.type]!,
                       ),
                       isExpanded: true,
-                      value: descending,
+                      initialValue: descending,
                       items: const [
-                        DropdownMenuItem(
-                          value: false,
-                          child: Text('تصاعدي'),
-                        ),
-                        DropdownMenuItem(
-                          value: true,
-                          child: Text('تنازلي'),
-                        ),
+                        DropdownMenuItem(value: false, child: Text('تصاعدي')),
+                        DropdownMenuItem(value: true, child: Text('تنازلي')),
                       ],
                       onChanged: (value) {
                         setState(() {
@@ -845,47 +796,50 @@ class _SearchQueryState extends State<SearchQuery> {
 
   Future<void> execute() async {
     QueryOfJson _mainQueryCompleter(QueryOfJson q, _, __) =>
-        valueWidget[properties[collection]![fieldPath]!.type]!
-            .completeQuery(q, queryValue);
+        valueWidget[properties[collection]![fieldPath]!.type]!.completeQuery(
+          q,
+          queryValue,
+        );
 
     final listController = ListController(
       objectsPaginatableStream: PaginatableStream.loadAll(
-        stream: (collection.id == 'Services'
-                ? MHDatabaseRepo.I.services.getAll(
-                    queryCompleter: _mainQueryCompleter,
-                  )
-                : collection.id == 'Classes'
+        stream:
+            (collection.id == 'Services'
+                    ? MHDatabaseRepo.I.services.getAll(
+                        queryCompleter: _mainQueryCompleter,
+                      )
+                    : collection.id == 'Classes'
                     ? MHDatabaseRepo.I.classes.getAll(
                         queryCompleter: _mainQueryCompleter,
                       )
                     : MHDatabaseRepo.I.persons.getAll(
                         queryCompleter: _mainQueryCompleter,
                       ))
-            .map(
-          (rslt) {
-            if (!order) return rslt;
+                .map((rslt) {
+                  if (!order) return rslt;
 
-            final sorted = rslt.cast<DataObject>().sublist(0);
-            mergeSort(
-              sorted,
-              compare: (previous, next) {
-                final p = previous;
-                final n = next;
+                  final sorted = rslt.cast<DataObject>().sublist(0);
+                  mergeSort(
+                    sorted,
+                    compare: (previous, next) {
+                      final p = previous;
+                      final n = next;
 
-                if (p.toJson()[orderBy] is Comparable &&
-                    n.toJson()[orderBy] is Comparable) {
-                  return descending!
-                      ? -(p.toJson()[orderBy] ?? '')
-                          .compareTo(n.toJson()[orderBy] ?? '')
-                      : (p.toJson()[orderBy] ?? '')
-                          .compareTo(n.toJson()[orderBy] ?? '');
-                }
-                return 0;
-              },
-            );
-            return sorted;
-          },
-        ),
+                      if (p.toJson()[orderBy] is Comparable &&
+                          n.toJson()[orderBy] is Comparable) {
+                        return descending!
+                            ? -(p.toJson()[orderBy] ?? '').compareTo(
+                                n.toJson()[orderBy] ?? '',
+                              )
+                            : (p.toJson()[orderBy] ?? '').compareTo(
+                                n.toJson()[orderBy] ?? '',
+                              );
+                      }
+                      return 0;
+                    },
+                  );
+                  return sorted;
+                }),
       ),
     );
     final DataObjectListView body = DataObjectListView(
@@ -904,32 +858,29 @@ class _SearchQueryState extends State<SearchQuery> {
                   onPressed: () async {
                     await MHShareService.I.shareText(
                       (await MHShareService.I.shareQuery(
-                        QueryInfo.fromJson(
-                          {
-                            'collection': collection.id,
-                            'fieldPath': fieldPath,
-                            'operator': operator,
-                            'queryValue': queryValue == null
-                                ? null
-                                : queryValue is bool
-                                    ? 'B' + queryValue
-                                    : queryValue is JsonRef
-                                        ? 'D' + (queryValue as JsonRef).path
-                                        : (queryValue is DateTime
-                                            ? 'T' +
-                                                (queryValue as DateTime)
-                                                    .millisecondsSinceEpoch
-                                                    .toString()
-                                            : (queryValue is int
-                                                ? 'I' + queryValue.toString()
-                                                : 'S' + queryValue.toString())),
-                            'order': order.toString(),
-                            'orderBy': orderBy,
-                            'descending': descending.toString(),
-                          },
-                        ),
-                      ))
-                          .toString(),
+                        QueryInfo.fromJson({
+                          'collection': collection.id,
+                          'fieldPath': fieldPath,
+                          'operator': operator,
+                          'queryValue': queryValue == null
+                              ? null
+                              : queryValue is bool
+                              ? 'B' + queryValue
+                              : queryValue is JsonRef
+                              ? 'D' + (queryValue as JsonRef).path
+                              : (queryValue is DateTime
+                                    ? 'T' +
+                                          (queryValue as DateTime)
+                                              .millisecondsSinceEpoch
+                                              .toString()
+                                    : (queryValue is int
+                                          ? 'I' + queryValue.toString()
+                                          : 'S' + queryValue.toString())),
+                          'order': order.toString(),
+                          'orderBy': orderBy,
+                          'descending': descending.toString(),
+                        }),
+                      )).toString(),
                     );
                   },
                   tooltip: 'مشاركة النتائج برابط',
@@ -939,13 +890,12 @@ class _SearchQueryState extends State<SearchQuery> {
                 collection.id == 'Services'
                     ? Service
                     : collection.id == 'Classes'
-                        ? Class
-                        : Person,
+                    ? Class
+                    : Person,
                 options: listController,
                 textStyle: Theme.of(context).textTheme.titleLarge!.copyWith(
-                      color:
-                          Theme.of(context).primaryTextTheme.titleLarge!.color,
-                    ),
+                  color: Theme.of(context).primaryTextTheme.titleLarge!.color,
+                ),
                 disableOrdering: true,
               ),
             ),
@@ -959,8 +909,9 @@ class _SearchQueryState extends State<SearchQuery> {
                   return Text(
                     (snapshot.data?.length ?? 0).toString() + ' عنصر',
                     textAlign: TextAlign.center,
-                    strutStyle:
-                        StrutStyle(height: IconTheme.of(context).size! / 7.5),
+                    strutStyle: StrutStyle(
+                      height: IconTheme.of(context).size! / 7.5,
+                    ),
                     style: Theme.of(context).primaryTextTheme.bodyLarge,
                   );
                 },
@@ -1135,8 +1086,9 @@ class _SearchQueryState extends State<SearchQuery> {
                     onTap: (value) {
                       navigator.currentState!.pop();
                       setState(() {
-                        query = query.copyWith
-                            .queryValue(onlyUID ? value.uid : value.ref);
+                        query = query.copyWith.queryValue(
+                          onlyUID ? value.uid : value.ref,
+                        );
                       });
                     },
                     autoDisposeController: false,

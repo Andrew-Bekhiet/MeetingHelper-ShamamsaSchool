@@ -19,62 +19,53 @@ import 'package:spreadsheet_decoder/spreadsheet_decoder.dart';
 
 import '../main.dart';
 
-List<RadioListTile> getOrderingOptions(
+List<Widget> getOrderingOptions(
   BehaviorSubject<OrderOptions> orderOptions,
   Type type,
 ) {
-  return (type == Class
-          ? Class.propsMetadata()
-          : type == Service
-              ? Service.propsMetadata()
-              : Person.propsMetadata())
-      .entries
-      .map(
-        (e) => RadioListTile<String>(
-          value: e.key,
-          groupValue: orderOptions.value.orderBy,
-          title: Text(e.value.label),
-          onChanged: (value) {
-            orderOptions.add(
-              OrderOptions(orderBy: value!, asc: orderOptions.value.asc),
-            );
-            navigator.currentState!.pop();
-          },
-        ),
-      )
-      .toList()
-    ..addAll(
-      [
-        RadioListTile(
-          value: 'true',
-          groupValue: orderOptions.value.asc.toString(),
-          title: const Text('تصاعدي'),
-          onChanged: (value) {
-            orderOptions.add(
-              OrderOptions(
-                orderBy: orderOptions.value.orderBy,
-                asc: value == 'true',
-              ),
-            );
-            navigator.currentState!.pop();
-          },
-        ),
-        RadioListTile(
-          value: 'false',
-          groupValue: orderOptions.value.asc.toString(),
-          title: const Text('تنازلي'),
-          onChanged: (value) {
-            orderOptions.add(
-              OrderOptions(
-                orderBy: orderOptions.value.orderBy,
-                asc: value == 'true',
-              ),
-            );
-            navigator.currentState!.pop();
-          },
-        ),
-      ],
-    );
+  return [
+    RadioGroup(
+      groupValue: orderOptions.value.orderBy,
+      onChanged: (value) {
+        orderOptions.add(
+          OrderOptions(orderBy: value!, asc: orderOptions.value.asc),
+        );
+        navigator.currentState!.pop();
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final MapEntry(:key, :value)
+              in (type == Class
+                      ? Class.propsMetadata()
+                      : type == Service
+                      ? Service.propsMetadata()
+                      : Person.propsMetadata())
+                  .entries)
+            RadioListTile<String>(value: key, title: Text(value.label)),
+        ],
+      ),
+    ),
+    RadioGroup(
+      groupValue: orderOptions.value.asc.toString(),
+      onChanged: (value) {
+        orderOptions.add(
+          OrderOptions(
+            orderBy: orderOptions.value.orderBy,
+            asc: value == 'true',
+          ),
+        );
+        navigator.currentState!.pop();
+      },
+      child: const Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          RadioListTile(value: 'true', title: Text('تصاعدي')),
+          RadioListTile(value: 'false', title: Text('تنازلي')),
+        ],
+      ),
+    ),
+  ];
 }
 
 bool notService(String subcollection) =>
@@ -105,11 +96,7 @@ Future<void> import(BuildContext context) async {
           .ref('Imports/' + filename + '.xlsx')
           .putData(
             fileData,
-            SettableMetadata(
-              customMetadata: {
-                'createdBy': User.instance.uid,
-              },
-            ),
+            SettableMetadata(customMetadata: {'createdBy': User.instance.uid}),
           );
 
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
@@ -119,14 +106,12 @@ Future<void> import(BuildContext context) async {
           duration: Duration(minutes: 9),
         ),
       );
-      await GetIt.I<FunctionsService>()
-          .httpsCallable('importFromExcel')
-          .call({'fileId': filename + '.xlsx'});
+      await GetIt.I<FunctionsService>().httpsCallable('importFromExcel').call({
+        'fileId': filename + '.xlsx',
+      });
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(
-        const SnackBar(
-          content: Text('تم الاستيراد بنجاح'),
-        ),
+        const SnackBar(content: Text('تم الاستيراد بنجاح')),
       );
     } else {
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
@@ -143,11 +128,13 @@ Future<List<TUser>?> selectUsers<TGroup, TUser extends User>(
   required ListController<TGroup, TUser> Function(
     List<TUser>,
     BehaviorSubject<bool>,
-  ) createController,
+  )
+  createController,
   FutureOr<List<TUser>> Function()? initialSelection,
 }) async {
-  final initialSelectionFuture =
-      Future.value(initialSelection?.call() ?? <TUser>[]);
+  final initialSelectionFuture = Future.value(
+    initialSelection?.call() ?? <TUser>[],
+  );
 
   final navigator = Navigator.of(context);
 
@@ -209,19 +196,14 @@ Future<List<TUser>?> selectUsers<TGroup, TUser extends User>(
                   ],
                 ),
                 body: DataObjectListView<TGroup, TUser>(
-                  itemBuilder: (
-                    current, {
-                    onLongPress,
-                    onTap,
-                    trailing,
-                    subtitle,
-                  }) =>
-                      ViewableObjectWidget(
-                    current,
-                    onTap: () => onTap!(current),
-                    trailing: trailing,
-                    showSubtitle: false,
-                  ),
+                  itemBuilder:
+                      (current, {onLongPress, onTap, trailing, subtitle}) =>
+                          ViewableObjectWidget(
+                            current,
+                            onTap: () => onTap!(current),
+                            trailing: trailing,
+                            showSubtitle: false,
+                          ),
                   controller: controller,
                   autoDisposeController: false,
                 ),
@@ -240,8 +222,9 @@ Future<List<TUser>?> selectUsers<TGroup, TUser extends User>(
 
 Future<List<T>?> selectServices<T extends DataObject>(List<T>? selected) async {
   final _controller = ServicesListController<T>(
-    objectsPaginatableStream:
-        PaginatableStream.loadAll(stream: Stream.value([])),
+    objectsPaginatableStream: PaginatableStream.loadAll(
+      stream: Stream.value([]),
+    ),
     groupByStream: (_) =>
         MHDatabaseRepo.I.services.groupServicesByStudyYearRef<T>(),
   )..selectAll(selected);
@@ -318,10 +301,11 @@ Future<void> showErrorUpdateDataDialog({
       context: context!,
       builder: (context) => AlertDialog(
         content: const Text(
-            'الخادم مثال حى للنفس التائبة ـ يمارس التوبة فى حياته الخاصة'
-            ' وفى أصوامـه وصلواته ، وحب المسـيح المصلوب\n'
-            'أبونا بيشوي كامل \n'
-            'يرجي مراجعة حياتك الروحية والاهتمام بها'),
+          'الخادم مثال حى للنفس التائبة ـ يمارس التوبة فى حياته الخاصة'
+          ' وفى أصوامـه وصلواته ، وحب المسـيح المصلوب\n'
+          'أبونا بيشوي كامل \n'
+          'يرجي مراجعة حياتك الروحية والاهتمام بها',
+        ),
         actions: [
           OutlinedButton.icon(
             style: OutlinedButton.styleFrom(
@@ -329,8 +313,10 @@ Future<void> showErrorUpdateDataDialog({
             ),
             onPressed: () async {
               final user = User.instance;
-              await navigator.currentState!
-                  .pushNamed('UpdateUserDataError', arguments: user);
+              await navigator.currentState!.pushNamed(
+                'UpdateUserDataError',
+                arguments: user,
+              );
               if (user.lastTanawol != null &&
                   user.lastConfession != null &&
                   ((user.lastTanawol!.millisecondsSinceEpoch + 2592000000) >
@@ -361,7 +347,9 @@ Future<void> showErrorUpdateDataDialog({
         ],
       ),
     );
-    await GetIt.I<CacheRepository>().box('Settings').put(
+    await GetIt.I<CacheRepository>()
+        .box('Settings')
+        .put(
           'DialogLastShown',
           DateTime.now().truncateToDay().millisecondsSinceEpoch,
         );

@@ -54,8 +54,10 @@ class _EditClassState extends State<EditClass> {
                         const Positioned(
                           left: 1.0,
                           top: 2.0,
-                          child:
-                              Icon(Icons.photo_camera, color: Colors.black54),
+                          child: Icon(
+                            Icons.photo_camera,
+                            color: Colors.black54,
+                          ),
                         ),
                         Icon(
                           Icons.photo_camera,
@@ -69,8 +71,8 @@ class _EditClassState extends State<EditClass> {
               ],
               backgroundColor: class$.color != Colors.transparent
                   ? (Theme.of(context).brightness == Brightness.light
-                      ? class$.color?.lighten()
-                      : class$.color?.darken())
+                        ? class$.color?.lighten()
+                        : class$.color?.darken())
                   : null,
               //title: Text(widget.me.name),
               expandedHeight: 250.0,
@@ -84,9 +86,7 @@ class _EditClassState extends State<EditClass> {
                         : 1,
                     child: Text(
                       class$.name,
-                      style: const TextStyle(
-                        fontSize: 16.0,
-                      ),
+                      style: const TextStyle(fontSize: 16.0),
                     ),
                   ),
                   background: changedImage == null || deletePhoto
@@ -220,7 +220,7 @@ class _EditClassState extends State<EditClass> {
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     child: DropdownButtonFormField<bool?>(
-                      value: class$.gender,
+                      initialValue: class$.gender,
                       items: [null, true, false]
                           .map(
                             (item) => DropdownMenuItem(
@@ -229,8 +229,8 @@ class _EditClassState extends State<EditClass> {
                                 item == null
                                     ? 'بنين وبنات'
                                     : item
-                                        ? 'بنين'
-                                        : 'بنات',
+                                    ? 'بنين'
+                                    : 'بنات',
                               ),
                             ),
                           )
@@ -327,8 +327,9 @@ class _EditClassState extends State<EditClass> {
       return;
     }
 
-    final selectedImage = await ImagePicker()
-        .pickImage(source: source ? ImageSource.camera : ImageSource.gallery);
+    final selectedImage = await ImagePicker().pickImage(
+      source: source ? ImageSource.camera : ImageSource.gallery,
+    );
     if (selectedImage == null) return;
     changedImage = kIsWeb
         ? selectedImage.path
@@ -342,8 +343,7 @@ class _EditClassState extends State<EditClass> {
                 lockAspectRatio: false,
               ),
             ],
-          ))
-            ?.path;
+          ))?.path;
     deletePhoto = false;
     setState(() {});
   }
@@ -353,8 +353,9 @@ class _EditClassState extends State<EditClass> {
           context: context,
           builder: (context) => AlertDialog(
             title: Text(class$.name),
-            content:
-                Text('هل أنت متأكد من حذف ${class$.name} وكل ما به مخدومين؟'),
+            content: Text(
+              'هل أنت متأكد من حذف ${class$.name} وكل ما به مخدومين؟',
+            ),
             actions: <Widget>[
               TextButton(
                 onPressed: () {
@@ -391,11 +392,10 @@ class _EditClassState extends State<EditClass> {
   @override
   void initState() {
     super.initState();
-    class$ = (widget.class$ ??
-            Class.empty().copyWith(
-              allowedUsers: [User.instance.uid],
-            ))
-        .copyWith();
+    class$ =
+        (widget.class$ ??
+                Class.empty().copyWith(allowedUsers: [User.instance.uid]))
+            .copyWith();
   }
 
   void nameChanged(String value) {
@@ -513,14 +513,14 @@ class _EditClassState extends State<EditClass> {
       },
       createController: (users, isGroupingUsersSubject) =>
           ListController<Class?, User>(
-        objectsPaginatableStream: PaginatableStream.loadAll(
-          stream: MHDatabaseRepo.instance.users.getAllUsersNames().map(
+            objectsPaginatableStream: PaginatableStream.loadAll(
+              stream: MHDatabaseRepo.instance.users.getAllUsersNames().map(
                 (users) => users.where((u) => u.uid != User.emptyUID).toList(),
               ),
-        ),
-        groupingStream: isGroupingUsersSubject,
-        groupByStream: MHDatabaseRepo.I.users.groupUsersByClass,
-      )..selectAll(users.toList()),
+            ),
+            groupingStream: isGroupingUsersSubject,
+            groupByStream: MHDatabaseRepo.I.users.groupUsersByClass,
+          )..selectAll(users.toList()),
     );
 
     if (rslt == null) return;

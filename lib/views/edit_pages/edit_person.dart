@@ -66,8 +66,10 @@ class _EditPersonState extends State<EditPerson> {
                         const Positioned(
                           left: 1.0,
                           top: 2.0,
-                          child:
-                              Icon(Icons.photo_camera, color: Colors.black54),
+                          child: Icon(
+                            Icons.photo_camera,
+                            color: Colors.black54,
+                          ),
                         ),
                         Icon(
                           Icons.photo_camera,
@@ -82,8 +84,8 @@ class _EditPersonState extends State<EditPerson> {
               ],
               backgroundColor: person.color != null
                   ? (Theme.of(context).brightness == Brightness.light
-                      ? person.color!.lighten()
-                      : person.color!.darken())
+                        ? person.color!.lighten()
+                        : person.color!.darken())
                   : null,
               //title: Text(widget.me.name),
               expandedHeight: 250.0,
@@ -97,16 +99,12 @@ class _EditPersonState extends State<EditPerson> {
                         : 1,
                     child: Text(
                       person.name,
-                      style: const TextStyle(
-                        fontSize: 16.0,
-                      ),
+                      style: const TextStyle(fontSize: 16.0),
                     ),
                   ),
                   background: changedImage == null
                       ? PhotoObjectWidget(person, circleCrop: false)
-                      : Image.file(
-                          File(changedImage!),
-                        ),
+                      : Image.file(File(changedImage!)),
                 ),
               ),
             ),
@@ -123,9 +121,7 @@ class _EditPersonState extends State<EditPerson> {
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     child: TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'الاسم',
-                      ),
+                      decoration: const InputDecoration(labelText: 'الاسم'),
                       initialValue: person.name,
                       keyboardType: TextInputType.name,
                       autofillHints: const [AutofillHints.name],
@@ -236,15 +232,18 @@ class _EditPersonState extends State<EditPerson> {
                                   ),
                                 );
                                 if (rslt == 'delete') {
-                                  person = person.copyWith
-                                      .phones(person.phones..remove(e.key));
+                                  person = person.copyWith.phones(
+                                    person.phones..remove(e.key),
+                                  );
                                   setState(() {});
                                 } else if (rslt != null) {
-                                  person = person.copyWith
-                                      .phones(person.phones..remove(e.key));
                                   person = person.copyWith.phones(
-                                    {...person.phones, name.text: e.value},
+                                    person.phones..remove(e.key),
                                   );
+                                  person = person.copyWith.phones({
+                                    ...person.phones,
+                                    name.text: e.value,
+                                  });
                                   setState(() {});
                                 }
                               },
@@ -253,8 +252,10 @@ class _EditPersonState extends State<EditPerson> {
                           keyboardType: TextInputType.phone,
                           autofillHints: const [AutofillHints.telephoneNumber],
                           initialValue: e.value,
-                          onChanged: (s) => person = person.copyWith
-                              .phones({...person.phones, e.key: s}),
+                          onChanged: (s) => person = person.copyWith.phones({
+                            ...person.phones,
+                            e.key: s,
+                          }),
                           onFieldSubmitted: _nextFocus,
                           validator: (value) {
                             return null;
@@ -267,8 +268,9 @@ class _EditPersonState extends State<EditPerson> {
                     icon: const Icon(Icons.add),
                     label: const Text('اضافة رقم هاتف أخر'),
                     onPressed: () async {
-                      final TextEditingController name =
-                          TextEditingController(text: '');
+                      final TextEditingController name = TextEditingController(
+                        text: '',
+                      );
                       if (await showDialog(
                             context: context,
                             builder: (context) => AlertDialog(
@@ -290,8 +292,10 @@ class _EditPersonState extends State<EditPerson> {
                           ) !=
                           null) {
                         setState(
-                          () => person = person.copyWith
-                              .phones({...person.phones, name.text: ''}),
+                          () => person = person.copyWith.phones({
+                            ...person.phones,
+                            name.text: '',
+                          }),
                         );
                       }
                     },
@@ -343,12 +347,10 @@ class _EditPersonState extends State<EditPerson> {
                                 icon: const Icon(Icons.delete),
                                 tooltip: 'ازالة الفصل المحدد',
                                 onPressed: () {
-                                  setState(
-                                    () {
-                                      person = person.copyWith.classId(null);
-                                      state.didChange(null);
-                                    },
-                                  );
+                                  setState(() {
+                                    person = person.copyWith.classId(null);
+                                    state.didChange(null);
+                                  });
                                 },
                               )
                             : null,
@@ -385,7 +387,7 @@ class _EditPersonState extends State<EditPerson> {
                           ),
                           data.requireData.firstWhereOrNull(
                             (s) => s.id == selectedClass?.studyYearTo?.id,
-                          )
+                          ),
                         );
 
                         return Container(
@@ -413,28 +415,27 @@ class _EditPersonState extends State<EditPerson> {
                               }
                               return null;
                             },
-                            value: person.studyYear,
-                            items: data.data!
-                                .where(
-                                  (sy) =>
-                                      from != null &&
-                                      to != null &&
-                                      sy.grade >= from.grade &&
-                                      sy.grade <= to.grade,
-                                )
-                                .map(
-                                  (item) => DropdownMenuItem(
-                                    value: item.ref,
-                                    child: Text(item.name),
+                            initialValue: person.studyYear,
+                            items:
+                                data.data!
+                                    .where(
+                                      (sy) =>
+                                          from != null &&
+                                          to != null &&
+                                          sy.grade >= from.grade &&
+                                          sy.grade <= to.grade,
+                                    )
+                                    .map(
+                                      (item) => DropdownMenuItem(
+                                        value: item.ref,
+                                        child: Text(item.name),
+                                      ),
+                                    )
+                                    .toList()
+                                  ..insert(
+                                    0,
+                                    const DropdownMenuItem(child: Text('')),
                                   ),
-                                )
-                                .toList()
-                              ..insert(
-                                0,
-                                const DropdownMenuItem(
-                                  child: Text(''),
-                                ),
-                              ),
                             onChanged: (value) {
                               setState(() {});
                               person = person.copyWith.studyYear(value);
@@ -468,40 +469,39 @@ class _EditPersonState extends State<EditPerson> {
                                 labelText: 'النوع',
                                 errorText: state.errorText,
                               ),
-                              child: Row(
-                                children: [
-                                  ...[true, false].map(
-                                    (i) => Expanded(
-                                      child: Row(
-                                        children: [
-                                          Radio<bool>(
-                                            value: i,
-                                            groupValue: person.gender,
-                                            onChanged: (v) => setState(
-                                              () => person =
-                                                  person.copyWith.gender(v!),
+                              child: RadioGroup(
+                                groupValue: person.gender,
+                                onChanged: (v) => setState(
+                                  () => person = person.copyWith.gender(v!),
+                                ),
+                                child: Row(
+                                  children: [
+                                    ...[true, false].map(
+                                      (i) => Expanded(
+                                        child: Row(
+                                          children: [
+                                            Radio<bool>(value: i),
+                                            GestureDetector(
+                                              onTap: () => setState(
+                                                () => person = person.copyWith
+                                                    .gender(i),
+                                              ),
+                                              child: Text(i ? 'ذكر' : 'أنثى'),
                                             ),
-                                          ),
-                                          GestureDetector(
-                                            onTap: () => setState(
-                                              () => person =
-                                                  person.copyWith.gender(i),
-                                            ),
-                                            child: Text(i ? 'ذكر' : 'أنثى'),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                             onSaved: (value) =>
                                 person = person.copyWith.gender(value!),
                             validator: (value) =>
                                 person.classId == null && value == null
-                                    ? 'يجب اختيار النوع'
-                                    : null,
+                                ? 'يجب اختيار النوع'
+                                : null,
                           ),
                         );
                       }
@@ -518,32 +518,31 @@ class _EditPersonState extends State<EditPerson> {
                             labelText: 'شماس',
                             errorText: state.errorText,
                           ),
-                          child: Row(
-                            children: [
-                              ...[true, false].map(
-                                (i) => Expanded(
-                                  child: Row(
-                                    children: [
-                                      Radio<bool>(
-                                        value: i,
-                                        groupValue: person.isShammas,
-                                        onChanged: (v) => setState(
-                                          () => person =
-                                              person.copyWith.isShammas(v!),
+                          child: RadioGroup(
+                            groupValue: person.isShammas,
+                            onChanged: (v) => setState(
+                              () => person = person.copyWith.isShammas(v!),
+                            ),
+                            child: Row(
+                              children: [
+                                ...[true, false].map(
+                                  (i) => Expanded(
+                                    child: Row(
+                                      children: [
+                                        Radio<bool>(value: i),
+                                        GestureDetector(
+                                          onTap: () => setState(
+                                            () => person = person.copyWith
+                                                .isShammas(i),
+                                          ),
+                                          child: Text(i ? 'نعم' : 'لا'),
                                         ),
-                                      ),
-                                      GestureDetector(
-                                        onTap: () => setState(
-                                          () => person =
-                                              person.copyWith.isShammas(i),
-                                        ),
-                                        child: Text(i ? 'نعم' : 'لا'),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                         onSaved: (value) =>
@@ -554,28 +553,27 @@ class _EditPersonState extends State<EditPerson> {
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 8),
                       child: DropdownButtonFormField<String>(
-                        value: person.shammasLevel,
+                        initialValue: person.shammasLevel,
                         isExpanded: true,
-                        items: [
-                          'ابصالتس',
-                          'أناغنوستيس',
-                          'أيبودياكون',
-                          'دياكون',
-                          'أرشيدياكون',
-                        ]
-                            .map(
-                              (item) => DropdownMenuItem(
-                                value: item,
-                                child: Text(item),
+                        items:
+                            [
+                                  'ابصالتس',
+                                  'أناغنوستيس',
+                                  'أيبودياكون',
+                                  'دياكون',
+                                  'أرشيدياكون',
+                                ]
+                                .map(
+                                  (item) => DropdownMenuItem(
+                                    value: item,
+                                    child: Text(item),
+                                  ),
+                                )
+                                .toList()
+                              ..insert(
+                                0,
+                                const DropdownMenuItem(child: Text('')),
                               ),
-                            )
-                            .toList()
-                          ..insert(
-                            0,
-                            const DropdownMenuItem(
-                              child: Text(''),
-                            ),
-                          ),
                         onChanged: (value) {
                           person = person.copyWith.shammasLevel(value);
                           FocusScope.of(context).nextFocus();
@@ -588,9 +586,7 @@ class _EditPersonState extends State<EditPerson> {
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     child: TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'العنوان',
-                      ),
+                      decoration: const InputDecoration(labelText: 'العنوان'),
                       keyboardType: TextInputType.streetAddress,
                       autofillHints: const [AutofillHints.fullStreetAddress],
                       initialValue: person.address,
@@ -611,13 +607,14 @@ class _EditPersonState extends State<EditPerson> {
                   FutureBuilder<bool>(
                     key: ValueKey(person.studyYear),
                     future: () async {
-                      final studyYear = await (person.studyYear ??
-                              (await person.classId
-                                      ?.get()
-                                      // ignore: invalid_return_type_for_catch_error
-                                      .catchError((_) => null))
-                                  ?.data()?['StudyYearFrom'] as JsonRef?)
-                          ?.get();
+                      final studyYear =
+                          await (person.studyYear ??
+                                  (await person.classId?.get()
+                                          // ignore: invalid_return_type_for_catch_error
+                                          .catchError((_) => null))
+                                          ?.data()?['StudyYearFrom']
+                                      as JsonRef?)
+                              ?.get();
 
                       return studyYear?.data()?['IsCollegeYear']?.toString() ==
                           'true';
@@ -629,131 +626,101 @@ class _EditPersonState extends State<EditPerson> {
                         if (data.requireData) {
                           return Container(
                             margin: const EdgeInsets.symmetric(vertical: 8),
-                            child: Row(
-                              children: <Widget>[
-                                Expanded(
-                                  child: FutureBuilder<List<College>>(
-                                    key: ValueKey(person.college),
-                                    future: College.getAll().first,
-                                    builder: (context, data) {
-                                      if (data.hasData) {
-                                        return Container(
-                                          margin: const EdgeInsets.symmetric(
-                                            vertical: 8,
+                            child: TappableFormField<JsonRef?>(
+                              initialValue: person.college,
+                              builder: (context, state) => state.value != null
+                                  ? FutureBuilder<String>(
+                                      future: state.value?.get().then(
+                                        (doc) => College.fromDoc(doc).name,
+                                      ),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.hasData) {
+                                          return Text(snapshot.data!);
+                                        } else {
+                                          return const Text('');
+                                        }
+                                      },
+                                    )
+                                  : null,
+                              onTap: (state) async {
+                                final selected =
+                                    await showModalBottomSheet<College?>(
+                                      context: context,
+                                      builder: (context) =>
+                                          MiniModelList<College>(
+                                            title: 'الكلية',
+                                            transformer: College.fromDoc,
+                                            showSearch: true,
+                                            modify: (context, v, _) =>
+                                                Navigator.of(context).pop(v),
+                                            collection:
+                                                GetIt.I<DatabaseRepository>()
+                                                    .collection('Colleges'),
                                           ),
-                                          child:
-                                              DropdownButtonFormField<JsonRef?>(
-                                            isExpanded: true,
-                                            value: person.college,
-                                            items: data.data!
-                                                .map(
-                                                  (item) => DropdownMenuItem(
-                                                    value: item.ref,
-                                                    child: Text(item.name),
-                                                  ),
-                                                )
-                                                .toList()
-                                              ..insert(
-                                                0,
-                                                const DropdownMenuItem(
-                                                  child: Text(''),
-                                                ),
-                                              ),
-                                            onChanged: (value) {
-                                              person = person.copyWith
-                                                  .college(value);
-                                              FocusScope.of(context)
-                                                  .nextFocus();
-                                            },
-                                            decoration: const InputDecoration(
-                                              labelText: 'الكلية',
-                                            ),
-                                          ),
-                                        );
-                                      } else {
-                                        return const SizedBox(
-                                          width: 1,
-                                          height: 1,
-                                        );
-                                      }
-                                    },
-                                  ),
-                                ),
-                                TextButton.icon(
-                                  icon: const Icon(Icons.add),
-                                  label: const Text('اضافة'),
-                                  onPressed: () async {
-                                    await navigator.currentState!
-                                        .pushNamed('Settings/Colleges');
-                                    setState(() {});
-                                  },
-                                ),
-                              ],
+                                    );
+
+                                if (selected != null) {
+                                  person = person.copyWith.college(
+                                    selected.ref,
+                                  );
+                                  state.didChange(selected.ref);
+                                  FocusScope.of(context).nextFocus();
+                                }
+                              },
+                              validator: (_) => null,
+                              decoration: (context, state) => InputDecoration(
+                                labelText: 'الكلية',
+                                errorText: state.errorText,
+                              ),
                             ),
                           );
                         } else {
                           return Container(
                             margin: const EdgeInsets.symmetric(vertical: 8),
-                            child: Row(
-                              children: <Widget>[
-                                Expanded(
-                                  child: FutureBuilder<List<School>>(
-                                    key: ValueKey(person.school),
-                                    future: School.getAll().first,
-                                    builder: (context, data) {
-                                      if (data.hasData) {
-                                        return Container(
-                                          margin: const EdgeInsets.symmetric(
-                                            vertical: 8,
+                            child: TappableFormField<JsonRef?>(
+                              initialValue: person.school,
+                              builder: (context, state) => state.value != null
+                                  ? FutureBuilder<String>(
+                                      future: state.value?.get().then(
+                                        (doc) => School.fromDoc(doc).name,
+                                      ),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.hasData) {
+                                          return Text(snapshot.data!);
+                                        } else {
+                                          return const Text('');
+                                        }
+                                      },
+                                    )
+                                  : null,
+                              onTap: (state) async {
+                                final selected =
+                                    await showModalBottomSheet<School?>(
+                                      context: context,
+                                      builder: (context) =>
+                                          MiniModelList<School>(
+                                            title: 'المدرسة',
+                                            transformer: School.fromDoc,
+                                            showSearch: true,
+                                            modify: (context, v, _) =>
+                                                Navigator.of(context).pop(v),
+                                            collection:
+                                                GetIt.I<DatabaseRepository>()
+                                                    .collection('Schools'),
                                           ),
-                                          child:
-                                              DropdownButtonFormField<JsonRef?>(
-                                            isExpanded: true,
-                                            value: person.school,
-                                            items: data.data!
-                                                .map(
-                                                  (item) => DropdownMenuItem(
-                                                    value: item.ref,
-                                                    child: Text(item.name),
-                                                  ),
-                                                )
-                                                .toList()
-                                              ..insert(
-                                                0,
-                                                const DropdownMenuItem(
-                                                  child: Text(''),
-                                                ),
-                                              ),
-                                            onChanged: (value) {
-                                              person =
-                                                  person.copyWith.school(value);
-                                              FocusScope.of(context)
-                                                  .nextFocus();
-                                            },
-                                            decoration: const InputDecoration(
-                                              labelText: 'المدرسة',
-                                            ),
-                                          ),
-                                        );
-                                      } else {
-                                        return const SizedBox(
-                                          width: 1,
-                                          height: 1,
-                                        );
-                                      }
-                                    },
-                                  ),
-                                ),
-                                TextButton.icon(
-                                  icon: const Icon(Icons.add),
-                                  label: const Text('اضافة'),
-                                  onPressed: () async {
-                                    await navigator.currentState!
-                                        .pushNamed('Settings/Schools');
-                                    setState(() {});
-                                  },
-                                ),
-                              ],
+                                    );
+
+                                if (selected != null) {
+                                  person = person.copyWith.school(selected.ref);
+                                  state.didChange(selected.ref);
+                                  FocusScope.of(context).nextFocus();
+                                }
+                              },
+                              validator: (_) => null,
+                              decoration: (context, state) => InputDecoration(
+                                labelText: 'المدرسة',
+                                errorText: state.errorText,
+                              ),
                             ),
                           );
                         }
@@ -763,112 +730,104 @@ class _EditPersonState extends State<EditPerson> {
                   ),
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: FutureBuilder<List<Church>>(
-                            key: ValueKey(person.church),
-                            future: Church.getAll().first,
-                            builder: (context, data) {
-                              if (data.hasData) {
-                                return Container(
-                                  margin:
-                                      const EdgeInsets.symmetric(vertical: 8),
-                                  child: DropdownButtonFormField<JsonRef?>(
-                                    value: person.church,
-                                    isExpanded: true,
-                                    items: data.data!
-                                        .map(
-                                          (item) => DropdownMenuItem(
-                                            value: item.ref,
-                                            child: Text(item.name),
-                                          ),
-                                        )
-                                        .toList()
-                                      ..insert(
-                                        0,
-                                        const DropdownMenuItem(
-                                          child: Text(''),
-                                        ),
-                                      ),
-                                    onChanged: (value) {
-                                      person = person.copyWith.church(value);
-                                      FocusScope.of(context).nextFocus();
-                                    },
-                                    decoration: const InputDecoration(
-                                      labelText: 'الكنيسة',
-                                    ),
-                                  ),
-                                );
-                              } else {
-                                return const SizedBox(width: 1, height: 1);
-                              }
-                            },
+                    child: TappableFormField<JsonRef?>(
+                      initialValue: person.church,
+                      builder: (context, state) => state.value != null
+                          ? FutureBuilder<String>(
+                              future: state.value?.get().then(
+                                (doc) => Church.fromDoc(doc).name,
+                              ),
+                              builder: (context, snapshot) {
+                                if (snapshot.hasData) {
+                                  return Text(snapshot.data!);
+                                } else {
+                                  return const Text('');
+                                }
+                              },
+                            )
+                          : null,
+                      onTap: (state) async {
+                        final selected = await showModalBottomSheet<Church?>(
+                          context: context,
+                          builder: (context) => MiniModelList<Church>(
+                            title: 'الكنيسة',
+                            transformer: Church.fromDoc,
+                            showSearch: true,
+                            modify: (context, v, _) =>
+                                Navigator.of(context).pop(v),
+                            add: (context) => churchTap(
+                              context,
+                              Church.createNew(),
+                              true,
+                              canDelete: false,
+                            ),
+                            collection: GetIt.I<DatabaseRepository>()
+                                .collection('Churches'),
                           ),
-                        ),
-                        TextButton.icon(
-                          icon: const Icon(Icons.add),
-                          label: const Text('اضافة'),
-                          onPressed: () async {
-                            await navigator.currentState!
-                                .pushNamed('Settings/Churches');
-                            setState(() {});
-                          },
-                        ),
-                      ],
+                        );
+
+                        if (selected != null) {
+                          person = person.copyWith.church(selected.ref);
+                          state.didChange(selected.ref);
+                          FocusScope.of(context).nextFocus();
+                        }
+                      },
+                      validator: (_) => null,
+                      decoration: (context, state) => InputDecoration(
+                        labelText: 'الكنيسة',
+                        errorText: state.errorText,
+                      ),
                     ),
                   ),
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: FutureBuilder<List<Father>>(
-                            key: ValueKey(person.cFather),
-                            future: Father.getAll().first,
-                            builder: (context, data) {
-                              if (data.hasData) {
-                                return DropdownButtonFormField<JsonRef?>(
-                                  value: person.cFather,
-                                  isExpanded: true,
-                                  items: data.data!
-                                      .map(
-                                        (item) => DropdownMenuItem(
-                                          value: item.ref,
-                                          child: Text(item.name),
-                                        ),
-                                      )
-                                      .toList()
-                                    ..insert(
-                                      0,
-                                      const DropdownMenuItem(
-                                        child: Text(''),
-                                      ),
-                                    ),
-                                  onChanged: (value) {
-                                    person = person.copyWith.cFather(value);
-                                    FocusScope.of(context).nextFocus();
-                                  },
-                                  decoration: const InputDecoration(
-                                    labelText: 'أب الاعتراف',
-                                  ),
-                                );
-                              } else {
-                                return const SizedBox(width: 1, height: 1);
-                              }
-                            },
+                    child: TappableFormField<JsonRef?>(
+                      initialValue: person.cFather,
+                      builder: (context, state) => state.value != null
+                          ? FutureBuilder<String>(
+                              future: state.value?.get().then(
+                                (doc) => Father.fromDoc(doc).name,
+                              ),
+                              builder: (context, snapshot) {
+                                if (snapshot.hasData) {
+                                  return Text(snapshot.data!);
+                                } else {
+                                  return const Text('');
+                                }
+                              },
+                            )
+                          : null,
+                      onTap: (state) async {
+                        final selected = await showModalBottomSheet<Father?>(
+                          context: context,
+                          builder: (context) => MiniModelList<Father>(
+                            title: 'أب الاعتراف',
+                            transformer: Father.fromDoc,
+                            showSearch: true,
+                            modify: (context, v, _) =>
+                                Navigator.of(context).pop(v),
+                            add: (context) => fatherTap(
+                              context,
+                              Father.createNew(),
+                              true,
+                              canDelete: false,
+                            ),
+                            collection: GetIt.I<DatabaseRepository>()
+                                .collection('Fathers'),
                           ),
-                        ),
-                        TextButton.icon(
-                          icon: const Icon(Icons.add),
-                          label: const Text('اضافة'),
-                          onPressed: () async {
-                            await navigator.currentState!
-                                .pushNamed('Settings/Fathers');
-                            setState(() {});
-                          },
-                        ),
-                      ],
+                        );
+
+                        if (selected != null) {
+                          person = person.copyWith.cFather(selected.ref);
+                          state.didChange(selected.ref);
+                          FocusScope.of(context).nextFocus();
+                        }
+                      },
+                      validator: (_) => null,
+                      decoration: (context, state) => InputDecoration(
+                        labelText: 'أب الاعتراف',
+                        errorText: state.errorText,
+                      ),
                     ),
                   ),
                   TappableFormField<DateTime?>(
@@ -1034,9 +993,7 @@ class _EditPersonState extends State<EditPerson> {
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     child: TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'ملاحظات',
-                      ),
+                      decoration: const InputDecoration(labelText: 'ملاحظات'),
                       textInputAction: TextInputAction.newline,
                       initialValue: person.notes,
                       onChanged: (v) => person = person.copyWith.notes(v),
@@ -1049,8 +1006,8 @@ class _EditPersonState extends State<EditPerson> {
                         ? FilledButton.styleFrom(
                             backgroundColor:
                                 Theme.of(context).brightness == Brightness.light
-                                    ? person.color?.lighten()
-                                    : person.color?.darken(),
+                                ? person.color?.lighten()
+                                : person.color?.darken(),
                           )
                         : null,
                     onPressed: _selectColor,
@@ -1074,10 +1031,7 @@ class _EditPersonState extends State<EditPerson> {
   Future<void> _editLocation() async {
     final rslt = await navigator.currentState!.push(
       MaterialPageRoute(
-        builder: (context) => LocationMapView(
-          person: person,
-          editable: true,
-        ),
+        builder: (context) => LocationMapView(person: person, editable: true),
       ),
     );
     if (rslt == false) {
@@ -1161,9 +1115,8 @@ class _EditPersonState extends State<EditPerson> {
       } else {
         // ignore: unawaited_futures
         person.ref.delete();
-
-        navigator.currentState!.pop('deleted');
       }
+      navigator.currentState!.pop('deleted');
     }
   }
 
@@ -1178,15 +1131,20 @@ class _EditPersonState extends State<EditPerson> {
             duration: Duration(minutes: 1),
           ),
         );
-        final update = (await person.ref.get()).exists;
+        final update = await person.ref
+            .get()
+            .then((s) => s.exists)
+            .catchError((_) => false);
 
         if (person.id == 'null' && !update) {
-          person = person.copyWith
-              .ref(GetIt.I<DatabaseRepository>().collection('Persons').doc());
+          person = person.copyWith.ref(
+            GetIt.I<DatabaseRepository>().collection('Persons').doc(),
+          );
         }
 
-        person = person.copyWith
-            .lastEdit(LastEdit(User.instance.uid, DateTime.now()));
+        person = person.copyWith.lastEdit(
+          LastEdit(User.instance.uid, DateTime.now()),
+        );
 
         if (person.classId == null &&
             person.classId != widget.person?.classId) {
@@ -1214,7 +1172,8 @@ class _EditPersonState extends State<EditPerson> {
         if (widget.person is! User &&
             person.studyYear != null &&
             person.studyYear != widget.person?.studyYear) {
-          final isCollegeYear = (await person.studyYear?.get())
+          final isCollegeYear =
+              (await person.studyYear?.get())
                   ?.data()?['IsCollegeYear']
                   ?.toString() ==
               'true';
@@ -1227,20 +1186,18 @@ class _EditPersonState extends State<EditPerson> {
         final bool isConnected =
             (await Connectivity().checkConnectivity()).isConnected;
 
-        final Future<void> saveFuture =
-            switch ((person.ref.parent.id, update)) {
-          ('UsersData', true) => person.ref.update(
-              {
-                ...person.toJson(),
-                'AllowedUsers': FieldValue.arrayUnion([User.instance.uid]),
-              },
-            ),
-          ('UsersData', false) => person.ref.set(
-              {
-                ...person.toJson(),
-                'AllowedUsers': [User.instance.uid],
-              },
-            ),
+        final Future<void> saveFuture = switch ((
+          person.ref.parent.id,
+          update,
+        )) {
+          ('UsersData', true) => person.ref.update({
+            ...person.toJson(),
+            'AllowedUsers': FieldValue.arrayUnion([User.instance.uid]),
+          }),
+          ('UsersData', false) => person.ref.set({
+            ...person.toJson(),
+            'AllowedUsers': [User.instance.uid],
+          }),
           (_, true) => person.update(old: widget.person?.toJson() ?? {}),
           (_, false) => person.set(),
         };
@@ -1278,9 +1235,7 @@ class _EditPersonState extends State<EditPerson> {
       } else {
         if (person.classId != null || person.services.isNotEmpty) {
           scaffoldMessenger.currentState!.showSnackBar(
-            const SnackBar(
-              content: Text('يرجى التحقق من الييانات المدخلة'),
-            ),
+            const SnackBar(content: Text('يرجى التحقق من الييانات المدخلة')),
           );
         }
         await showDialog(
@@ -1303,9 +1258,7 @@ class _EditPersonState extends State<EditPerson> {
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
-          content: Text(
-            err.toString(),
-          ),
+          content: Text(err.toString()),
           duration: const Duration(seconds: 7),
         ),
       );
@@ -1314,8 +1267,9 @@ class _EditPersonState extends State<EditPerson> {
 
   Future<void> _selectClass(FormFieldState<JsonRef?> state) async {
     final controller = ServicesListController<Class>(
-      objectsPaginatableStream:
-          PaginatableStream.loadAll(stream: MHDatabaseRepo.I.classes.getAll()),
+      objectsPaginatableStream: PaginatableStream.loadAll(
+        stream: MHDatabaseRepo.I.classes.getAll(),
+      ),
       groupByStream: MHDatabaseRepo.I.services.groupServicesByStudyYearRef,
     );
 
@@ -1373,8 +1327,9 @@ class _EditPersonState extends State<EditPerson> {
                   return Text(
                     (snapshot.data?.length ?? 0).toString() + ' مرحلة',
                     textAlign: TextAlign.center,
-                    strutStyle:
-                        StrutStyle(height: IconTheme.of(context).size! / 7.5),
+                    strutStyle: StrutStyle(
+                      height: IconTheme.of(context).size! / 7.5,
+                    ),
                     style: Theme.of(context).primaryTextTheme.bodyLarge,
                   );
                 },
@@ -1447,8 +1402,9 @@ class _EditPersonState extends State<EditPerson> {
       return;
     }
 
-    final selectedImage = await ImagePicker()
-        .pickImage(source: source ? ImageSource.camera : ImageSource.gallery);
+    final selectedImage = await ImagePicker().pickImage(
+      source: source ? ImageSource.camera : ImageSource.gallery,
+    );
     if (selectedImage == null) return;
     changedImage = (await ImageCropper().cropImage(
       sourcePath: selectedImage.path,
@@ -1461,8 +1417,7 @@ class _EditPersonState extends State<EditPerson> {
           lockAspectRatio: false,
         ),
       ],
-    ))
-        ?.path;
+    ))?.path;
     deletePhoto = false;
     setState(() {});
   }

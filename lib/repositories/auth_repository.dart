@@ -64,10 +64,10 @@ class MHAuthRepository extends AuthRepository<User, Person> {
           .map((doc) {
             userSubject.add(
               User(
-                lastTanawol:
-                    (doc.data()?['LastTanawol'] as Timestamp?)?.toDate(),
-                lastConfession:
-                    (doc.data()?['LastConfession'] as Timestamp?)?.toDate(),
+                lastTanawol: (doc.data()?['LastTanawol'] as Timestamp?)
+                    ?.toDate(),
+                lastConfession: (doc.data()?['LastConfession'] as Timestamp?)
+                    ?.toDate(),
                 ref: doc.reference,
                 uid: firebaseUser?.uid ?? uid!,
                 name: firebaseUser?.displayName ?? name ?? '',
@@ -87,7 +87,8 @@ class MHAuthRepository extends AuthRepository<User, Person> {
     } else {
       userSubject.add(
         User(
-          ref: currentUser?.ref ??
+          ref:
+              currentUser?.ref ??
               GetIt.I<DatabaseRepository>()
                   .collection('UsersData')
                   .doc(idTokenClaims['personId'] ?? 'null'),
@@ -113,7 +114,8 @@ class MHAuthRepository extends AuthRepository<User, Person> {
         .listen(connectionChanged);
 
     return User(
-      ref: currentUser?.ref ??
+      ref:
+          currentUser?.ref ??
           MHDatabaseRepo.I
               .collection('UsersData')
               .doc(idTokenClaims['personId'] ?? 'null'),

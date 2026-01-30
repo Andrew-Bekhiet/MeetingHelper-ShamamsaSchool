@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:churchdata_core/churchdata_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:intl/intl.dart';
 import 'package:meetinghelper/controllers.dart';
 import 'package:meetinghelper/models.dart';
 import 'package:meetinghelper/repositories.dart';
@@ -10,6 +11,7 @@ import 'package:meetinghelper/services/share_service.dart';
 import 'package:meetinghelper/utils/globals.dart';
 import 'package:meetinghelper/utils/helpers.dart';
 import 'package:meetinghelper/widgets.dart';
+import 'package:meetinghelper/widgets/lazy_tab_page.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -25,40 +27,42 @@ class Day extends StatefulWidget {
 }
 
 class _DayState extends State<Day> with TickerProviderStateMixin {
-  TabController? _previous;
+  late TabController _previous = TabController(length: 3, vsync: this);
   final BehaviorSubject<bool> _showSearch = BehaviorSubject<bool>.seeded(false);
-  final BehaviorSubject<String> _searchSubject =
-      BehaviorSubject<String>.seeded('');
+  final BehaviorSubject<String> _searchSubject = BehaviorSubject<String>.seeded(
+    '',
+  );
   final FocusNode _searchFocus = FocusNode();
 
   late final HistoryDayOptions dayOptions;
   late final DayCheckListController<Class?, Person> baseController;
 
   final Map<String, DayCheckListController<DataObject?, Person>>
-      _listControllers = {};
+  _listControllers = {};
 
   final _sorting = GlobalKey();
-  final _analyticsToday = GlobalKey();
   final _lockUnchecks = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<Tuple2<TabController, List<Service>>>(
-      initialData: Tuple2(_previous!, []),
-      stream: MHDatabaseRepo.I.services
-          .getAll(onlyShownInHistory: true)
-          .map((snapshot) {
-        if (snapshot.length + 3 != _previous?.length) {
+      initialData: Tuple2(_previous, []),
+      stream: MHDatabaseRepo.I.services.getAll(onlyShownInHistory: true).map((
+        services,
+      ) {
+        if (services.length + 3 != _previous.length) {
           _previous = TabController(
-            length: snapshot.length + 3,
+            length: services.length + 3,
             vsync: this,
-            initialIndex: _previous?.index ?? 0,
+            initialIndex: _previous.index,
           );
         }
 
-        return Tuple2(_previous!, snapshot);
+        return Tuple2(_previous, services);
       }),
-      builder: (context, snapshot) {
+      builder: (context, servicesSnapshot) {
+        final tabController = servicesSnapshot.requireData.item1;
+
         return Scaffold(
           appBar: AppBar(
             title: StreamBuilder<bool>(
@@ -82,35 +86,94 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                     : Container(),
               ),
               IconButton(
-                key: _analyticsToday,
-                tooltip: 'تحليل بيانات كشف اليوم',
-                icon: const Icon(Icons.analytics_outlined),
-                onPressed: () {
-                  navigator.currentState!.pushNamed(
-                    'Analytics',
-                    arguments: {
-                      'Day': widget.record,
-                      'HistoryCollection': widget.record.ref.parent.id,
-                    },
-                  );
-                },
+                tooltip: 'تنظيم الليستة',
+                icon: const Icon(Icons.filter_list),
+                onPressed: () => _showShareAttendanceDialog(context),
               ),
               PopupMenuButton(
                 key: _sorting,
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'analysis',
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 8,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.analytics_outlined),
+                        Text('تحليل بيانات كشف اليوم'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'share',
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 8,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [Icon(Icons.share), Text('مشاركة الكشف')],
+                    ),
+                  ),
+                  if (User.instance.permissions.changeHistory &&
+                      DateTime.now()
+                              .difference(widget.record.day.toDate())
+                              .inDays !=
+                          0)
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        spacing: 8,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (dayOptions.enabled.value) ...[
+                            const Icon(Icons.check_circle),
+                            const Text('اغلاق وضع التعديل'),
+                          ] else ...[
+                            const Icon(Icons.edit),
+                            const Text('تعديل الكشف'),
+                          ],
+                        ],
+                      ),
+                    ),
+                  if (User.instance.permissions.superAccess)
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        spacing: 8,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.delete_forever, color: Colors.red),
+                          Text('حذف الكشف'),
+                        ],
+                      ),
+                    ),
+                ],
                 onSelected: (v) async {
                   if (v == 'delete' && User.instance.permissions.superAccess) {
                     await _delete();
-                  } else if (v == 'sorting') {
-                    await _showShareAttendanceDialog(context);
+                  } else if (v == 'analysis') {
+                    unawaited(
+                      Navigator.of(context).pushNamed(
+                        'Analytics',
+                        arguments: {
+                          'Day': widget.record,
+                          'HistoryCollection': widget.record.ref.parent.id,
+                        },
+                      ),
+                    );
                   } else if (v == 'share') {
-                    final tabIndex = snapshot.requireData.item1.index;
+                    final tabIndex = tabController.index;
 
-                    final initialTitle = switch (tabIndex) {
+                    final initialTitle =
+                        switch (tabIndex) {
                           0 => 'حضور الاجتماع',
                           1 => 'حضور القداس',
                           2 => 'الاعتراف',
                           final int i =>
-                            'حضور ' + snapshot.requireData.item2[i - 3].name,
+                            'حضور ' +
+                                servicesSnapshot.requireData.item2[i - 3].name,
                         } +
                         ' ليوم ' +
                         widget.record.name.replaceAll('\t', ' ');
@@ -136,13 +199,13 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                       'Meeting',
                       'Kodas',
                       'Confession',
-                      ...snapshot.requireData.item2.map(
+                      ...servicesSnapshot.requireData.item2.map(
                         (service) => service.id,
                       ),
                     ];
 
-                    final controller = _listControllers[
-                        tabIndexToListControllerName[tabIndex]]!;
+                    final controller =
+                        _listControllers[tabIndexToListControllerName[tabIndex]]!;
 
                     final selectedGroups = selectGroups
                         ? await _showSelectGroupsDialog(context, controller)
@@ -167,112 +230,114 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                     dayOptions.showOnly.add(null);
                   }
                 },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'sorting',
-                    child: Text('تنظيم الليستة'),
-                  ),
-                  const PopupMenuItem(
-                    value: 'share',
-                    child: Text('مشاركة الكشف'),
-                  ),
-                  if (User.instance.permissions.changeHistory &&
-                      DateTime.now()
-                              .difference(widget.record.day.toDate())
-                              .inDays !=
-                          0)
-                    PopupMenuItem(
-                      value: 'edit',
-                      child: dayOptions.enabled.value
-                          ? const Text('اغلاق وضع التعديل')
-                          : const Text('تعديل الكشف'),
-                    ),
-                  if (User.instance.permissions.superAccess)
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Text('حذف الكشف'),
-                    ),
-                ],
               ),
             ],
             bottom: TabBar(
               isScrollable: true,
-              controller: snapshot.requireData.item1,
+              controller: tabController,
               tabs: [
                 const Tab(text: 'حضور الاجتماع'),
                 const Tab(text: 'حضور القداس'),
                 const Tab(text: 'الاعتراف'),
-                ...snapshot.requireData.item2.map(
+                ...servicesSnapshot.requireData.item2.map(
                   (service) => Tab(text: service.name),
                 ),
               ],
             ),
           ),
           body: TabBarView(
-            controller: snapshot.requireData.item1,
+            controller: tabController,
             children: [
-              DayCheckList<Class?, Person>(
-                autoDisposeController: false,
-                key: PageStorageKey(
-                  (widget.record is ServantsHistoryDay ? 'Users' : 'Persons') +
-                      'Meeting' +
-                      widget.record.id,
-                ),
-                controller: () {
-                  final tmp = baseController.copyWith(type: 'Meeting');
-                  _listControllers['Meeting'] = tmp;
-                  return tmp;
-                }(),
-              ),
-              DayCheckList<Class?, Person>(
-                autoDisposeController: false,
-                key: PageStorageKey(
-                  (widget.record is ServantsHistoryDay ? 'Users' : 'Persons') +
-                      'Kodas' +
-                      widget.record.id,
-                ),
-                controller: () {
-                  final tmp = baseController.copyWith(type: 'Kodas');
-                  _listControllers['Kodas'] = tmp;
-                  return tmp;
-                }(),
-              ),
-              DayCheckList<Class?, Person>(
-                autoDisposeController: false,
-                key: PageStorageKey(
-                  (widget.record is ServantsHistoryDay ? 'Users' : 'Persons') +
-                      'Confession' +
-                      widget.record.id,
-                ),
-                controller: () {
-                  final tmp = baseController.copyWith(type: 'Confession');
-                  _listControllers['Confession'] = tmp;
-                  return tmp;
-                }(),
-              ),
-              ...snapshot.requireData.item2.map(
-                (service) => DayCheckList<StudyYear?, Person>(
+              LazyTabPage(
+                tabController: tabController,
+                index: 0,
+                builder: (context) => DayCheckList<Class?, Person>(
                   autoDisposeController: false,
                   key: PageStorageKey(
                     (widget.record is ServantsHistoryDay
                             ? 'Users'
                             : 'Persons') +
-                        service.id +
+                        'Meeting' +
                         widget.record.id,
                   ),
-                  controller: () {
-                    final tmp = baseController.copyWithNewG<StudyYear?>(
-                      type: service.id,
-                      groupByStream:
-                          MHDatabaseRepo.I.persons.groupPersonsByStudyYearRef,
-                      objectsPaginatableStream: PaginatableStream.loadAll(
-                        stream: service.getPersonsMembers(),
-                      ),
-                    );
-
-                    _listControllers[service.id] = tmp;
-                    return tmp;
-                  }(),
+                  controller:
+                      _listControllers.putIfAbsent(
+                            'Meeting',
+                            () => baseController.forType('Meeting'),
+                          )
+                          as DayCheckListController<Class?, Person>,
+                ),
+              ),
+              LazyTabPage(
+                tabController: tabController,
+                index: 1,
+                builder: (context) => DayCheckList<Class?, Person>(
+                  autoDisposeController: false,
+                  key: PageStorageKey(
+                    (widget.record is ServantsHistoryDay
+                            ? 'Users'
+                            : 'Persons') +
+                        'Kodas' +
+                        widget.record.id,
+                  ),
+                  controller:
+                      _listControllers.putIfAbsent(
+                            'Kodas',
+                            () => baseController.forType('Kodas'),
+                          )
+                          as DayCheckListController<Class?, Person>,
+                ),
+              ),
+              LazyTabPage(
+                tabController: tabController,
+                index: 1,
+                builder: (context) => DayCheckList<Class?, Person>(
+                  autoDisposeController: false,
+                  key: PageStorageKey(
+                    (widget.record is ServantsHistoryDay
+                            ? 'Users'
+                            : 'Persons') +
+                        'Confession' +
+                        widget.record.id,
+                  ),
+                  controller:
+                      _listControllers.putIfAbsent(
+                            'Confession',
+                            () => baseController.forType('Confession'),
+                          )
+                          as DayCheckListController<Class?, Person>,
+                ),
+              ),
+              ...servicesSnapshot.requireData.item2.map(
+                (service) => LazyTabPage(
+                  tabController: tabController,
+                  index: 1,
+                  builder: (context) => DayCheckList<StudyYear?, Person>(
+                    autoDisposeController: false,
+                    key: PageStorageKey(
+                      (widget.record is ServantsHistoryDay
+                              ? 'Users'
+                              : 'Persons') +
+                          service.id +
+                          widget.record.id,
+                    ),
+                    controller:
+                        _listControllers.putIfAbsent(
+                              service.id,
+                              () => baseController.copyWithNewG<StudyYear?>(
+                                type: service.id,
+                                groupByStream: MHDatabaseRepo
+                                    .I
+                                    .persons
+                                    .groupPersonsByStudyYearRef,
+                                objectsPaginatableStream:
+                                    PaginatableStream.loadAll(
+                                      stream: service.getPersonsMembers(),
+                                    ),
+                              ),
+                            )
+                            as DayCheckListController<StudyYear?, Person>,
+                  ),
                 ),
               ),
             ],
@@ -281,86 +346,96 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
             color: Theme.of(context).colorScheme.primary,
             shape: const CircularNotchedRectangle(),
             child: AnimatedBuilder(
-              animation: snapshot.requireData.item1,
-              builder: (context, _) => StreamBuilder<Tuple2<int, int>>(
-                stream: Rx.combineLatest2<List, Map, Tuple2<int, int>>(
-                  (snapshot.requireData.item1.index <= 2
-                          ? _listControllers[
-                                  snapshot.requireData.item1.index == 0
-                                      ? 'Meeting'
-                                      : snapshot.requireData.item1.index == 1
-                                          ? 'Kodas'
-                                          : 'Confesion']
-                              ?.objectsPaginatableStream
-                              .stream
-                          : _listControllers[snapshot
-                                  .requireData
-                                  .item2[snapshot.requireData.item1.index - 3]
-                                  .id]
-                              ?.objectsPaginatableStream
-                              .stream) ??
-                      Stream.value([]),
-                  (snapshot.requireData.item1.index <= 2
-                          ? _listControllers[
-                                  snapshot.requireData.item1.index == 0
-                                      ? 'Meeting'
-                                      : snapshot.requireData.item1.index == 1
-                                          ? 'Kodas'
-                                          : 'Confession']
-                              ?.attended
-                          : _listControllers[snapshot
-                                  .requireData
-                                  .item2[snapshot.requireData.item1.index - 3]
-                                  .id]
-                              ?.attended) ??
-                      Stream.value({}),
-                  (a, b) => Tuple2<int, int>(a.length, b.length),
-                ),
-                builder: (context, snapshot) {
-                  final TextTheme theme = Theme.of(context).primaryTextTheme;
-                  return ExpansionTile(
-                    expandedAlignment: Alignment.centerRight,
-                    title: Text(
-                      'الحضور: ' +
-                          (snapshot.data?.item2.toString() ?? '0') +
-                          ' مخدوم',
-                      style: theme.bodyMedium,
-                    ),
-                    trailing:
-                        Icon(Icons.expand_more, color: theme.bodyMedium?.color),
-                    leading: StreamBuilder<bool>(
-                      initialData: dayOptions.lockUnchecks.value,
-                      stream: dayOptions.lockUnchecks,
-                      builder: (context, data) {
-                        return IconButton(
-                          key: _lockUnchecks,
-                          icon: Icon(
-                            !data.data! ? Icons.lock_open : Icons.lock_outlined,
-                            color: theme.bodyMedium?.color,
-                          ),
-                          tooltip: 'تثبيت الحضور',
-                          onPressed: () =>
-                              dayOptions.lockUnchecks.add(!data.data!),
-                        );
-                      },
-                    ),
-                    children: [
-                      Text(
-                        'الغياب: ' +
-                            ((snapshot.data?.item1 ?? 0) -
-                                    (snapshot.data?.item2 ?? 0))
-                                .toString() +
-                            ' مخدوم',
-                      ),
-                      Text(
-                        'اجمالي: ' +
-                            (snapshot.data?.item1 ?? 0).toString() +
-                            ' مخدوم',
-                      ),
-                    ],
-                  );
-                },
-              ),
+              animation: tabController,
+              builder: (context, _) =>
+                  StreamBuilder<({int attended, int total})>(
+                    stream:
+                        Rx.combineLatest2<
+                          List,
+                          Map,
+                          ({int attended, int total})
+                        >(
+                          (tabController.index <= 2
+                                  ? _listControllers[tabController.index == 0
+                                            ? 'Meeting'
+                                            : servicesSnapshot
+                                                      .requireData
+                                                      .item1
+                                                      .index ==
+                                                  1
+                                            ? 'Kodas'
+                                            : 'Confesion']
+                                        ?.objectsPaginatableStream
+                                        .stream
+                                  : _listControllers[servicesSnapshot
+                                            .requireData
+                                            .item2[tabController.index - 3]
+                                            .id]
+                                        ?.objectsPaginatableStream
+                                        .stream) ??
+                              Stream.value([]),
+                          (tabController.index <= 2
+                                  ? _listControllers[tabController.index == 0
+                                            ? 'Meeting'
+                                            : servicesSnapshot
+                                                      .requireData
+                                                      .item1
+                                                      .index ==
+                                                  1
+                                            ? 'Kodas'
+                                            : 'Confession']
+                                        ?.attended
+                                  : _listControllers[servicesSnapshot
+                                            .requireData
+                                            .item2[tabController.index - 3]
+                                            .id]
+                                        ?.attended) ??
+                              Stream.value({}),
+                          (a, b) => (total: a.length, attended: b.length),
+                        ),
+                    builder: (context, summarySnapshot) {
+                      final TextTheme theme = Theme.of(
+                        context,
+                      ).primaryTextTheme;
+
+                      final (:attended, :total) =
+                          summarySnapshot.data ?? (attended: 0, total: 0);
+
+                      return ExpansionTile(
+                        expandedAlignment: Alignment.centerRight,
+                        title: Text(
+                          'الحضور: $attended مخدوم',
+                          style: theme.bodyMedium,
+                        ),
+                        trailing: Icon(
+                          Icons.expand_more,
+                          color: theme.bodyMedium?.color,
+                        ),
+                        leading: StreamBuilder<bool>(
+                          initialData: dayOptions.lockUnchecks.value,
+                          stream: dayOptions.lockUnchecks,
+                          builder: (context, data) {
+                            return IconButton(
+                              key: _lockUnchecks,
+                              icon: Icon(
+                                !data.data!
+                                    ? Icons.lock_open
+                                    : Icons.lock_outlined,
+                                color: theme.bodyMedium?.color,
+                              ),
+                              tooltip: 'تثبيت الحضور',
+                              onPressed: () =>
+                                  dayOptions.lockUnchecks.add(!data.data!),
+                            );
+                          },
+                        ),
+                        children: [
+                          Text('الغياب: ${total - attended} مخدوم'),
+                          Text('اجمالي: $total مخدوم'),
+                        ],
+                      );
+                    },
+                  ),
             ),
           ),
           extendBody: true,
@@ -380,14 +455,8 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
             final groupsStream = fromController.objectsStream
                 .switchMap(
                   (currentObjects) => fromController.groupByStream != null
-                      ? fromController.groupByStream!(
-                          currentObjects,
-                        )
-                      : Stream.value(
-                          fromController.groupBy!(
-                            currentObjects,
-                          ),
-                        ),
+                      ? fromController.groupByStream!(currentObjects)
+                      : Stream.value(fromController.groupBy!(currentObjects)),
                 )
                 .map(
                   (o) => o.keys
@@ -409,8 +478,8 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
           },
           child: Builder(
             builder: (context) {
-              final groupSelectionController =
-                  context.read<ListController<void, DataObject>>();
+              final groupSelectionController = context
+                  .read<ListController<void, DataObject>>();
 
               return Scaffold(
                 appBar: AppBar(
@@ -454,24 +523,22 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
       return TextField(
         focusNode: _searchFocus,
         style: Theme.of(context).textTheme.titleLarge!.copyWith(
-              color: Theme.of(context).primaryTextTheme.titleLarge!.color,
-            ),
+          color: Theme.of(context).primaryTextTheme.titleLarge!.color,
+        ),
         decoration: InputDecoration(
           suffixIcon: IconButton(
             icon: Icon(
               Icons.close,
               color: Theme.of(context).primaryTextTheme.titleLarge!.color,
             ),
-            onPressed: () => setState(
-              () {
-                _searchSubject.add('');
-                _showSearch.add(false);
-              },
-            ),
+            onPressed: () => setState(() {
+              _searchSubject.add('');
+              _showSearch.add(false);
+            }),
           ),
           hintStyle: Theme.of(context).textTheme.titleLarge!.copyWith(
-                color: Theme.of(context).primaryTextTheme.titleLarge!.color,
-              ),
+            color: Theme.of(context).primaryTextTheme.titleLarge!.color,
+          ),
           icon: Icon(
             Icons.search,
             color: Theme.of(context).primaryTextTheme.titleLarge!.color,
@@ -480,9 +547,14 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
         ),
         onChanged: _searchSubject.add,
       );
-    } else {
-      return const Text('كشف الحضور');
     }
+    return Text(
+      'كشف ' +
+          DateFormat(
+            'EEEE، d MMMM y',
+            'ar-EG',
+          ).format(widget.record.day.toDate()),
+    );
   }
 
   Future<String?> _showShareAttendanceDialog(
@@ -492,8 +564,9 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
     void Function(BuildContext, String)? secondaryAction,
     String? initialTitle,
   }) async {
-    final TextEditingController titleController =
-        TextEditingController(text: initialTitle);
+    final TextEditingController titleController = TextEditingController(
+      text: initialTitle,
+    );
 
     return showDialog<String?>(
       context: context,
@@ -510,9 +583,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                     if (initialTitle != null)
                       TextFormField(
                         controller: titleController,
-                        decoration: const InputDecoration(
-                          labelText: 'العنوان',
-                        ),
+                        decoration: const InputDecoration(labelText: 'العنوان'),
                         textInputAction: TextInputAction.newline,
                         autofocus: true,
                         maxLines: null,
@@ -531,8 +602,9 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                             dayOptions.grouped.add(!dayOptions.grouped.value);
                             setState(() {});
                           },
-                          child:
-                              const Text('تقسيم حسب الفصول/السنوات الدراسية'),
+                          child: const Text(
+                            'تقسيم حسب الفصول/السنوات الدراسية',
+                          ),
                         ),
                       ],
                     ),
@@ -562,85 +634,86 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                       ],
                     ),
                     Container(height: 5),
-                    ListTile(
-                      title: const Text('ترتيب حسب:'),
-                      subtitle: Wrap(
-                        direction: Axis.vertical,
-                        children: [null, true, false]
-                            .map(
-                              (i) => Row(
-                                children: [
-                                  Radio<bool?>(
-                                    value: i,
-                                    groupValue: dayOptions.sortByTimeASC.value,
-                                    onChanged: (v) {
-                                      dayOptions.sortByTimeASC.add(v);
-                                      setState(() {});
-                                    },
-                                  ),
-                                  GestureDetector(
-                                    onTap: () {
-                                      dayOptions.sortByTimeASC.add(i);
-                                      setState(() {});
-                                    },
-                                    child: Text(
-                                      i == null
-                                          ? 'الاسم'
-                                          : i
-                                              ? 'وقت الحضور'
-                                              : 'وقت الحضور (المتأخر أولا)',
+                    RadioGroup(
+                      groupValue: dayOptions.sortByTimeASC.value,
+                      onChanged: (v) {
+                        dayOptions.sortByTimeASC.add(v);
+                        setState(() {});
+                      },
+                      child: ListTile(
+                        title: const Text('ترتيب حسب:'),
+                        subtitle: Wrap(
+                          direction: Axis.vertical,
+                          children: [null, true, false]
+                              .map(
+                                (i) => Row(
+                                  children: [
+                                    Radio<bool?>(value: i),
+                                    GestureDetector(
+                                      onTap: () {
+                                        dayOptions.sortByTimeASC.add(i);
+                                        setState(() {});
+                                      },
+                                      child: Text(
+                                        i == null
+                                            ? 'الاسم'
+                                            : i
+                                            ? 'وقت الحضور'
+                                            : 'وقت الحضور (المتأخر أولا)',
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            )
-                            .toList(),
+                                  ],
+                                ),
+                              )
+                              .toList(),
+                        ),
                       ),
                     ),
                     Container(height: 5),
-                    ListTile(
-                      enabled: dayOptions.sortByTimeASC.value == null,
-                      title: const Text('إظهار:'),
-                      subtitle: Wrap(
-                        direction: Axis.vertical,
-                        children: [null, true, false]
-                            .map(
-                              (i) => Row(
-                                children: [
-                                  Radio<bool?>(
-                                    value: i,
-                                    groupValue:
-                                        dayOptions.sortByTimeASC.value == null
-                                            ? dayOptions.showOnly.value
-                                            : true,
-                                    onChanged:
-                                        dayOptions.sortByTimeASC.value == null
-                                            ? (v) {
-                                                dayOptions.showOnly.add(v);
-                                                setState(() {});
-                                              }
-                                            : null,
-                                  ),
-                                  GestureDetector(
-                                    onTap:
-                                        dayOptions.sortByTimeASC.value == null
-                                            ? () {
-                                                dayOptions.showOnly.add(i);
-                                                setState(() {});
-                                              }
-                                            : null,
-                                    child: Text(
-                                      i == null
-                                          ? 'الكل'
-                                          : i
-                                              ? 'الحاضرين فقط'
-                                              : 'الغائبين فقط',
+                    RadioGroup(
+                      groupValue: dayOptions.sortByTimeASC.value == null
+                          ? dayOptions.showOnly.value
+                          : true,
+                      onChanged: (v) {
+                        dayOptions.showOnly.add(v);
+                        setState(() {});
+                      },
+                      child: ListTile(
+                        enabled: dayOptions.sortByTimeASC.value == null,
+                        title: const Text('إظهار:'),
+                        subtitle: Wrap(
+                          direction: Axis.vertical,
+                          children: [null, true, false]
+                              .map(
+                                (i) => Row(
+                                  children: [
+                                    Radio<bool?>(
+                                      value: i,
+                                      enabled:
+                                          dayOptions.sortByTimeASC.value ==
+                                          null,
                                     ),
-                                  ),
-                                ],
-                              ),
-                            )
-                            .toList(),
+                                    GestureDetector(
+                                      onTap:
+                                          dayOptions.sortByTimeASC.value == null
+                                          ? () {
+                                              dayOptions.showOnly.add(i);
+                                              setState(() {});
+                                            }
+                                          : null,
+                                      child: Text(
+                                        i == null
+                                            ? 'الكل'
+                                            : i
+                                            ? 'الحاضرين فقط'
+                                            : 'الغائبين فقط',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                              .toList(),
+                        ),
                       ),
                     ),
                   ],
@@ -690,7 +763,6 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _previous = TabController(length: 3, vsync: this);
 
     final bool isSameDay =
         DateTime.now().difference(widget.record.day.toDate()).inDays == 0;
@@ -741,14 +813,16 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('كيفية استخدام كشف الحضور'),
-            content: const Text('1.يمكنك تسجيل حضور مخدوم بالضغط عليه وسيقوم'
-                ' البرنامج بتسجيل الحضور في الوقت الحالي'
-                '\n2.يمكنك تغيير وقت حضور المخدوم'
-                ' عن طريق الضغط مطولا عليه ثم تغيير الوقت'
-                '\n3.يمكنك اضافة ملاحظات على حضور المخدوم (مثلا: جاء متأخرًا بسبب كذا) عن'
-                ' طريق الضغط مطولا على المخدوم واضافة الملاحظات'
-                '\n4.يمكنك عرض معلومات المخدوم عن طريق الضغط مطولا عليه'
-                ' ثم الضغط على عرض بيانات المخدوم'),
+            content: const Text(
+              '1.يمكنك تسجيل حضور مخدوم بالضغط عليه وسيقوم'
+              ' البرنامج بتسجيل الحضور في الوقت الحالي'
+              '\n2.يمكنك تغيير وقت حضور المخدوم'
+              ' عن طريق الضغط مطولا عليه ثم تغيير الوقت'
+              '\n3.يمكنك اضافة ملاحظات على حضور المخدوم (مثلا: جاء متأخرًا بسبب كذا) عن'
+              ' طريق الضغط مطولا على المخدوم واضافة الملاحظات'
+              '\n4.يمكنك عرض معلومات المخدوم عن طريق الضغط مطولا عليه'
+              ' ثم الضغط على عرض بيانات المخدوم',
+            ),
             actions: [
               TextButton(
                 onPressed: () => navigator.currentState!.pop(),
@@ -776,29 +850,13 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                     ' اظهار المخدومين الحاضرين فقط أو '
                     'الغائبين والترتيب حسب وقت الحضور فقط من هنا',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSecondary,
-                        ),
+                      color: Theme.of(context).colorScheme.onSecondary,
+                    ),
                   ),
                 ),
               ],
               identify: 'Sorting',
               keyTarget: _sorting,
-              color: Theme.of(context).colorScheme.secondary,
-            ),
-            TargetFocus(
-              enableOverlayTab: true,
-              contents: [
-                TargetContent(
-                  child: Text(
-                    'عرض تحليل واحصاء لعدد الحضور اليوم من هنا',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSecondary,
-                        ),
-                  ),
-                ),
-              ],
-              identify: 'AnalyticsToday',
-              keyTarget: _analyticsToday,
               color: Theme.of(context).colorScheme.secondary,
             ),
             TargetFocus(
@@ -811,8 +869,8 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                     'يقوم البرنامج تلقائيًا بطلب تأكيد لإزالة حضور مخدوم'
                     '\nاذا اردت الغاء هذه الخاصية يمكنك الضغط هنا',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSecondary,
-                        ),
+                      color: Theme.of(context).colorScheme.onSecondary,
+                    ),
                   ),
                 ),
               ],
@@ -876,8 +934,8 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
 
     final allGroupedObjects = grouped || selectedGroups != null
         ? controller.groupByStream != null
-            ? await controller.groupByStream!(controller.currentObjects).first
-            : controller.groupBy!(controller.currentObjects)
+              ? await controller.groupByStream!(controller.currentObjects).first
+              : controller.groupBy!(controller.currentObjects)
         : <DataObject?, List<Person>>{};
 
     if (grouped) {

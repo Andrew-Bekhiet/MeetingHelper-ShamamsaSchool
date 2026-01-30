@@ -4,7 +4,8 @@ import 'dart:math';
 import 'package:async/async.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:churchdata_core/churchdata_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart' as firestore
+import 'package:cloud_firestore/cloud_firestore.dart'
+    as firestore
     show Settings;
 import 'package:cloud_firestore/cloud_firestore.dart' show FirebaseFirestore;
 import 'package:cloud_functions/cloud_functions.dart';
@@ -43,9 +44,7 @@ Future<void> main() async {
 
   await initMeetingHelper();
 
-  runApp(
-    const MeetingHelperApp(),
-  );
+  runApp(const MeetingHelperApp());
 }
 
 Future<void> initMeetingHelper() async {
@@ -133,8 +132,9 @@ Future<void> initMeetingHelper() async {
   final cacheSizeBytes = min(
     100 * 1024 * 1024,
     GetIt.I<CacheRepository>()
-        .box('Settings')
-        .get('cacheSize', defaultValue: 100 * 1024 * 1024) as int,
+            .box('Settings')
+            .get('cacheSize', defaultValue: 100 * 1024 * 1024)
+        as int,
   );
 
   await Hive.openBox('BirthdaysShownDates');
@@ -144,7 +144,8 @@ Future<void> initMeetingHelper() async {
 
     GetIt.I<FirebaseFirestore>().settings = firestore.Settings(
       persistenceEnabled: true,
-      sslEnabled: devBox.get('kEmulatorsHost') == null ||
+      sslEnabled:
+          devBox.get('kEmulatorsHost') == null ||
           devBox.get('kEmulatorsHost') == '',
       cacheSizeBytes: cacheSizeBytes,
     );
@@ -193,8 +194,9 @@ Future<void> initFirebase() async {
   }
 
   await FirebaseAppCheck.instance.activate(
-    androidProvider:
-        kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
+    androidProvider: kDebugMode
+        ? AndroidProvider.debug
+        : AndroidProvider.playIntegrity,
     appleProvider: kDebugMode ? AppleProvider.debug : AppleProvider.deviceCheck,
     webProvider: ReCaptchaV3Provider(appCheckRecaptchaSiteKey),
   );
@@ -204,9 +206,7 @@ Future<void> initFirebase() async {
 
   FirebaseDatabase.instance.setPersistenceEnabled(false);
 
-  registerFirebaseDependencies(
-    googleSignInOverride: GoogleSignIn(scopes: ['profile', 'email']),
-  );
+  registerFirebaseDependencies(googleSignInOverride: GoogleSignIn.instance);
 }
 
 class MeetingHelperApp extends StatefulWidget {
@@ -248,19 +248,20 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
         return StreamBuilder<User?>(
           initialData:
               GetIt.I<MHAuthRepository>().currentUser?.userDataUpToDate() ??
-                      false
-                  ? GetIt.I<MHAuthRepository>().currentUser
-                  : null,
+                  false
+              ? GetIt.I<MHAuthRepository>().currentUser
+              : null,
           stream: GetIt.I<MHAuthRepository>().userStream.map(
-                (event) => GetIt.I<MHAuthRepository>().isSignedIn &&
-                        User.instance.password != null &&
-                        !User.instance.userDataUpToDate()
-                    ? throw UpdateUserDataException(
-                        lastTanawol: User.instance.lastTanawol,
-                        lastConfession: User.instance.lastConfession,
-                      )
-                    : event,
-              ),
+            (event) =>
+                GetIt.I<MHAuthRepository>().isSignedIn &&
+                    User.instance.password != null &&
+                    !User.instance.userDataUpToDate()
+                ? throw UpdateUserDataException(
+                    lastTanawol: User.instance.lastTanawol,
+                    lastConfession: User.instance.lastConfession,
+                  )
+                : event,
+          ),
           builder: (context, userSnapshot) {
             final user = userSnapshot.data;
 
@@ -301,9 +302,7 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
             } else if (user.permissions.approved && user.password != null) {
               return AuthScreen(
                 onSuccess: () => Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(
-                    builder: (context) => const Root(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const Root()),
                 ),
               );
             } else {
@@ -336,9 +335,7 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: const [
-            Locale('ar', 'EG'),
-          ],
+          supportedLocales: const [Locale('ar', 'EG')],
           themeMode: theme.data!.brightness == Brightness.dark
               ? ThemeMode.dark
               : ThemeMode.light,

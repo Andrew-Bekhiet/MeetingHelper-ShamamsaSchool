@@ -8,7 +8,8 @@ class MHThemingService extends ThemingService {
     bool? darkTheme,
     bool? greatFeastThemeOverride,
   }) {
-    bool isDark = darkTheme ??
+    bool isDark =
+        darkTheme ??
         GetIt.I<CacheRepository>().box('Settings').get('DarkTheme') ??
         PlatformDispatcher.instance.platformBrightness == Brightness.dark;
 
@@ -21,15 +22,17 @@ class MHThemingService extends ThemingService {
 
     final riseDay = getRiseDay();
     if (greatFeastTheme &&
-        DateTime.now()
-            .isAfter(riseDay.subtract(const Duration(days: 7, seconds: 20))) &&
+        DateTime.now().isAfter(
+          riseDay.subtract(const Duration(days: 7, seconds: 20)),
+        ) &&
         DateTime.now().isBefore(riseDay.subtract(const Duration(days: 1)))) {
       primary = ThemingService.black;
       secondary = ThemingService.blackAccent;
       isDark = true;
     } else if (greatFeastTheme &&
-        DateTime.now()
-            .isBefore(riseDay.add(const Duration(days: 50, seconds: 20))) &&
+        DateTime.now().isBefore(
+          riseDay.add(const Duration(days: 50, seconds: 20)),
+        ) &&
         DateTime.now().isAfter(riseDay.subtract(const Duration(days: 1)))) {
       isDark = false;
     }
@@ -94,7 +97,7 @@ class MHThemingService extends ThemingService {
       MHThemingService.withInitialThemeata(getDefault());
 
   MHThemingService.withInitialThemeata(super.initialTheme)
-      : super.withInitialThemeata();
+    : super.withInitialThemeata();
 
   @override
   void switchTheme(bool darkTheme) {
