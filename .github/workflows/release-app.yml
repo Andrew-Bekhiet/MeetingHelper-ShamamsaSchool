@@ -107,7 +107,7 @@ jobs:
           NEW_VERSION: ${{ steps.version.outputs.version }}
           NEW_TAG: v${{ steps.version.outputs.version }}
           OLD_TAG: v${{ steps.previous_version.outputs.version }}
-          DOWNLOAD_LINK: https://play.google.com/store/apps/details?id=${{vars.PACKAGE_NAME}}
+          DOWNLOAD_LINK: https://github.com/Andrew-Bekhiet/MeetingHelper-ShamamsaSchool/releases/download/v${{ steps.version.outputs.version }}/MeetingHelper-ShamamsaSchool-v${{ steps.version.outputs.version }}.apk
         run: envsubst < ./.github/workflows/release-template.md > release-body.md
 
       - name: Get release changelog
