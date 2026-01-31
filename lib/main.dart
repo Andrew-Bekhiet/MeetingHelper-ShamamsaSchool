@@ -116,8 +116,9 @@ Future<void> initMeetingHelper() async {
   GetIt.I.registerSingleton<FileDownloadService>(const FileDownloadService());
 
   final mhDataObjectTapHandler = MHViewableObjectService(navigator);
-  GetIt.I
-      .registerSingleton<DefaultViewableObjectService>(mhDataObjectTapHandler);
+  GetIt.I.registerSingleton<DefaultViewableObjectService>(
+    mhDataObjectTapHandler,
+  );
   GetIt.I.registerSingleton<MHViewableObjectService>(mhDataObjectTapHandler);
 
   GetIt.I.unregister<FirebaseFunctions>();
@@ -206,7 +207,9 @@ Future<void> initFirebase() async {
 
   FirebaseDatabase.instance.setPersistenceEnabled(false);
 
-  registerFirebaseDependencies(googleSignInOverride: GoogleSignIn.instance);
+  final googleSignIn = GoogleSignIn.instance;
+  await googleSignIn.initialize();
+  registerFirebaseDependencies(googleSignInOverride: googleSignIn);
 }
 
 class MeetingHelperApp extends StatefulWidget {
@@ -324,9 +327,7 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
           debugShowCheckedModeBanner: false,
           scaffoldMessengerKey: scaffoldMessenger,
           navigatorKey: navigator,
-          navigatorObservers: [
-            GetIt.I<LoggingService>().navigatorObserver,
-          ],
+          navigatorObservers: [GetIt.I<LoggingService>().navigatorObserver],
           title: 'خدمة مدرسة الشمامسة',
           initialRoute: '/',
           routes: {'/': buildLoadAppWidget, ...appRoutes},
@@ -350,12 +351,11 @@ class _MeetingHelperAppState extends State<MeetingHelperApp> {
 
 final appRoutes = {
   'Login': (context) => const LoginScreen(),
-  'Data/EditClass': (context) => EditClass(
-        class$: ModalRoute.of(context)!.settings.arguments as Class?,
-      ),
+  'Data/EditClass': (context) =>
+      EditClass(class$: ModalRoute.of(context)!.settings.arguments as Class?),
   'Data/EditService': (context) => EditService(
-        service: ModalRoute.of(context)!.settings.arguments as Service?,
-      ),
+    service: ModalRoute.of(context)!.settings.arguments as Service?,
+  ),
   'Data/EditPerson': (context) {
     if (ModalRoute.of(context)?.settings.arguments == null) {
       return EditPerson(person: Person.empty());
@@ -382,18 +382,17 @@ final appRoutes = {
     );
   },
   'EditInvitation': (context) => EditInvitation(
-        invitation: ModalRoute.of(context)?.settings.arguments as Invitation? ??
-            Invitation.empty(),
-      ),
+    invitation:
+        ModalRoute.of(context)?.settings.arguments as Invitation? ??
+        Invitation.empty(),
+  ),
   'Day': (context) {
     if (ModalRoute.of(context)?.settings.arguments != null) {
       return Day(
         record: ModalRoute.of(context)!.settings.arguments! as HistoryDay,
       );
     } else {
-      return Day(
-        record: HistoryDay(),
-      );
+      return Day(record: HistoryDay());
     }
   },
   'ServantsDay': (context) {
@@ -403,9 +402,7 @@ final appRoutes = {
             ModalRoute.of(context)!.settings.arguments! as ServantsHistoryDay,
       );
     } else {
-      return Day(
-        record: ServantsHistoryDay(),
-      );
+      return Day(record: ServantsHistoryDay());
     }
   },
   'Trash': (context) => const Trash(),
@@ -414,51 +411,47 @@ final appRoutes = {
   'ServantsHistory': (context) => const History(isServantsHistory: true),
   'MyAccount': (context) => const MyAccount(),
   'Notifications': (context) => const NotificationsPage(),
-  'ClassInfo': (context) => ClassInfo(
-        class$: ModalRoute.of(context)!.settings.arguments! as Class,
-      ),
+  'ClassInfo': (context) =>
+      ClassInfo(class$: ModalRoute.of(context)!.settings.arguments! as Class),
   'ServiceInfo': (context) => ServiceInfo(
-        service: ModalRoute.of(context)!.settings.arguments! as Service,
-      ),
+    service: ModalRoute.of(context)!.settings.arguments! as Service,
+  ),
   'PersonInfo': (context) => PersonInfo(
-        person: ModalRoute.of(context)!.settings.arguments! is Person
-            ? ModalRoute.of(context)!.settings.arguments!
-            : (ModalRoute.of(context)!.settings.arguments! as Json)['Person'],
-        showMotherAndFatherPhones:
-            ModalRoute.of(context)!.settings.arguments is Map
-                ? ((ModalRoute.of(context)!.settings.arguments!
-                        as Json)['showMotherAndFatherPhones'] ??
-                    false)
-                : ModalRoute.of(context)!.settings.arguments is Person,
-      ),
+    person: ModalRoute.of(context)!.settings.arguments! is Person
+        ? ModalRoute.of(context)!.settings.arguments!
+        : (ModalRoute.of(context)!.settings.arguments! as Json)['Person'],
+    showMotherAndFatherPhones: ModalRoute.of(context)!.settings.arguments is Map
+        ? ((ModalRoute.of(context)!.settings.arguments!
+                  as Json)['showMotherAndFatherPhones'] ??
+              false)
+        : ModalRoute.of(context)!.settings.arguments is Person,
+  ),
   'CurriculumStageInfo': (context) => CurriculumStageInfo(
-        curriculum:
-            ModalRoute.of(context)!.settings.arguments! as CurriculumStage,
-      ),
-  'HymnInfo': (context) => HymnInfo(
-        hymn: ModalRoute.of(context)!.settings.arguments! as Hymn,
-      ),
+    curriculum: ModalRoute.of(context)!.settings.arguments! as CurriculumStage,
+  ),
+  'HymnInfo': (context) =>
+      HymnInfo(hymn: ModalRoute.of(context)!.settings.arguments! as Hymn),
   'LiturgyInfo': (context) => LiturgyInfo(
-        liturgy: ModalRoute.of(context)!.settings.arguments! as Liturgy,
-      ),
+    liturgy: ModalRoute.of(context)!.settings.arguments! as Liturgy,
+  ),
   'CopticLanguageInfo': (context) => CopticLanguageInfo(
-        copticLanguage:
-            ModalRoute.of(context)!.settings.arguments! as CopticLanguage,
-      ),
+    copticLanguage:
+        ModalRoute.of(context)!.settings.arguments! as CopticLanguage,
+  ),
   'UserInfo': (context) => UserInfo(
-        user: ModalRoute.of(context)!.settings.arguments! as UserWithPerson,
-      ),
+    user: ModalRoute.of(context)!.settings.arguments! as UserWithPerson,
+  ),
   'InvitationInfo': (context) => InvitationInfo(
-        invitation: ModalRoute.of(context)!.settings.arguments! as Invitation,
-      ),
+    invitation: ModalRoute.of(context)!.settings.arguments! as Invitation,
+  ),
   'ExamsScores': (context) =>
       ModalRoute.of(context)!.settings.arguments is Person
-          ? PersonExamsScores(
-              person: ModalRoute.of(context)!.settings.arguments! as Person,
-            )
-          : ClassExamsScores(
-              class$: ModalRoute.of(context)!.settings.arguments! as Class,
-            ),
+      ? PersonExamsScores(
+          person: ModalRoute.of(context)!.settings.arguments! as Person,
+        )
+      : ClassExamsScores(
+          class$: ModalRoute.of(context)!.settings.arguments! as Class,
+        ),
   'EditExamsScore': (context) {
     final args =
         ModalRoute.of(context)!.settings.arguments! as Map<Type, Object?>;
@@ -470,64 +463,51 @@ final appRoutes = {
   'Update': (context) => const Update(),
   'Search': (context) => const SearchQuery(),
   'SearchQuery': (context) => SearchQuery(
-        query: ModalRoute.of(context)!.settings.arguments as QueryInfo?,
-      ),
+    query: ModalRoute.of(context)!.settings.arguments as QueryInfo?,
+  ),
   'DataMap': (context) => const MHMapView(),
   'Settings': (context) => const Settings(),
   'Settings/Churches': (context) => MiniModelList<Church>(
-        title: 'الكنائس',
-        transformer: Church.fromDoc,
-        add: (context) => churchTap(
-          context,
-          Church.createNew(),
-          true,
-          canDelete: false,
-        ),
-        modify: churchTap,
-        collection: GetIt.I<MHDatabaseRepo>().collection('Churches'),
-      ),
+    title: 'الكنائس',
+    transformer: Church.fromDoc,
+    add: (context) =>
+        churchTap(context, Church.createNew(), true, canDelete: false),
+    modify: churchTap,
+    collection: GetIt.I<MHDatabaseRepo>().collection('Churches'),
+  ),
   'Settings/Fathers': (context) => MiniModelList<Father>(
-        title: 'الأباء الكهنة',
-        transformer: Father.fromDoc,
-        add: (context) => fatherTap(
-          context,
-          Father.createNew(),
-          true,
-          canDelete: false,
-        ),
-        modify: fatherTap,
-        collection: GetIt.I<MHDatabaseRepo>().collection('Fathers'),
-      ),
+    title: 'الأباء الكهنة',
+    transformer: Father.fromDoc,
+    add: (context) =>
+        fatherTap(context, Father.createNew(), true, canDelete: false),
+    modify: fatherTap,
+    collection: GetIt.I<MHDatabaseRepo>().collection('Fathers'),
+  ),
   'Settings/StudyYears': (context) => MiniModelList<StudyYear>(
-        title: 'السنوات الدراسية',
-        transformer: StudyYear.fromDoc,
-        add: (context) => studyYearTap(
-          context,
-          StudyYear.createNew(),
-          true,
-          canDelete: false,
-        ),
-        modify: studyYearTap,
-        completer: (q) => q.orderBy('Grade'),
-        collection: GetIt.I<MHDatabaseRepo>().collection('StudyYears'),
-      ),
+    title: 'السنوات الدراسية',
+    transformer: StudyYear.fromDoc,
+    add: (context) =>
+        studyYearTap(context, StudyYear.createNew(), true, canDelete: false),
+    modify: studyYearTap,
+    completer: (q) => q.orderBy('Grade'),
+    collection: GetIt.I<MHDatabaseRepo>().collection('StudyYears'),
+  ),
   'Settings/Schools': (context) => MiniModelList<School>(
-        transformer: School.fromDoc,
-        collection: GetIt.I<MHDatabaseRepo>().collection('Schools'),
-        title: 'المدارس',
-      ),
+    transformer: School.fromDoc,
+    collection: GetIt.I<MHDatabaseRepo>().collection('Schools'),
+    title: 'المدارس',
+  ),
   'Settings/Colleges': (context) => MiniModelList<College>(
-        transformer: College.fromDoc,
-        collection: GetIt.I<MHDatabaseRepo>().collection('Colleges'),
-        title: 'الكليات',
-      ),
+    transformer: College.fromDoc,
+    collection: GetIt.I<MHDatabaseRepo>().collection('Colleges'),
+    title: 'الكليات',
+  ),
   'UpdateUserDataError': (context) => const UpdateUserDataErrorPage(),
   'ManageUsers': (context) => const UsersPage(),
   'Invitations': (context) => const InvitationsPage(),
   'ActivityAnalysis': (context) => ActivityAnalysis(
-        parents:
-            ModalRoute.of(context)?.settings.arguments as List<DataObject>?,
-      ),
+    parents: ModalRoute.of(context)?.settings.arguments as List<DataObject>?,
+  ),
   'Analytics': (context) {
     if (ModalRoute.of(context)!.settings.arguments is Person) {
       return PersonAnalyticsPage(
@@ -535,9 +515,7 @@ final appRoutes = {
       );
     } else if (ModalRoute.of(context)!.settings.arguments is DataObject) {
       return AnalyticsPage(
-        parents: [
-          ModalRoute.of(context)!.settings.arguments! as DataObject,
-        ],
+        parents: [ModalRoute.of(context)!.settings.arguments! as DataObject],
       );
     } else if (ModalRoute.of(context)!.settings.arguments is HistoryDayBase) {
       return AnalyticsPage(

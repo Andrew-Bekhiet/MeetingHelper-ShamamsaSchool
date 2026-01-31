@@ -634,7 +634,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                       ],
                     ),
                     Container(height: 5),
-                    RadioGroup(
+                    RadioGroup<bool?>(
                       groupValue: dayOptions.sortByTimeASC.value,
                       onChanged: (v) {
                         dayOptions.sortByTimeASC.add(v);
@@ -670,7 +670,7 @@ class _DayState extends State<Day> with TickerProviderStateMixin {
                       ),
                     ),
                     Container(height: 5),
-                    RadioGroup(
+                    RadioGroup<bool?>(
                       groupValue: dayOptions.sortByTimeASC.value == null
                           ? dayOptions.showOnly.value
                           : true,
